@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@langchain/community": "^1.1.15",
+    "@langchain/core": "^1.1.24",
+    "@langchain/textsplitters": "^1.0.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "d3-dsv": "^3.0.1",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "imagekit": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.11.0",
+    "mongoose": "^9.1.6",
+    "multer": "^2.0.2",
+    "openai": "^6.21.0",
+    "pdf-parse": "^1.1.4",
+    "xlsx": "^0.18.5"
+  }
+}

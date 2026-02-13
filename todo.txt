@@ -1,0 +1,73 @@
+File Validation & Security:
+MIME Type Verification: Don't trust the file extension alone. Verify "magic numbers" (file signatures).
+Size Limits: Prevent DoS attacks by capping file sizes (e.g., 10MB).
+Contents Scanning: For enterprise, you'd scan for viruses, but for leaner apps, ensuring you only process expected text-based files is crucial.
+
+Metadata Extraction:
+Store more than just raw text. Capture page numbers (for PDFs), row numbers (for CSVs), or section headers. This allows the AI to cite sources properly (e.g., "Found on page 5").
+
+Hashing for De-duplication:
+Calculate an MD5 or SHA-256 hash of the file content before uploading. Check if this hash already exists in your database to prevent re-processing the exact same file multiple times.
+
+Asynchronous Processing (Queues):
+Crucial for Scalability: Splitting a large PDF and generating 1000+ embeddings can take 30-60 seconds. A standard HTTP request might time out.
+Industry Practice: The upload endpoint should just save the file and return "Processing Started". A background worker (using BullMQ, Redis, or RabbitMQ) then picks up the job, processes it, and updates the status. For your MVP, we can keep it simple (synchronous), but be aware this is the first bottleneck you'll hit.
+
+Chunking Strategy (Smart Splitting):
+Don't just split by character count.
+Markdown/Structure Aware: Split by headers (#, ##) or logical paragraphs so you don't cut a sentence in half.
+Overlap: Always include overlap (e.g., 10-15%) so context isn't lost at the boundaries.
+------------------------------------------------------------------------------------------
+
+Why Multer and How It Works
+Multer is a middleware specifically designed for handling multipart/form-data, which is the standard encoding for uploading files in HTML forms.
+
+Without Multer, Express (and Node.js in general) sees file uploads as complex streams of data that are hard to parse manually. Multer simplifies this by:
+
+Parsing the Stream: It reads the incoming HTTP request stream.
+Extracting the File: It isolates the file data from other form fields (like conversationId).
+Making it Accessible: It attaches the file to the req object as req.file (or req.files), making it trivial to access in your controller.
+"Are we using any buffer?"
+YES. Multer handles the buffer creation for you, but you configure how it does this.
+
+There are two main ways to use Multer:
+
+Disk Storage: Multer saves the file directly to your server's hard drive (e.g., in an uploads/ folder).
+Result: req.file.path points to a file on disk. req.file.buffer is undefined.
+Memory Storage: Multer keeps the file data in RAM as a Buffer.
+Result: req.file.buffer contains the raw binary data of the file.
+For our use case (Cloud Upload): We will use Memory Storage.
+
+This is faster because we don't need to write to disk first.
+We can take req.file.buffer directly and stream it to ImageKit.
+Once ImageKit confirms the upload, the buffer is garbage collected and our server stays clean.
+The Flow We Will Implement
+Client Request: User sends a POST request with a file attached.
+Multer Middleware: Intercepts the request. It stores the file in RAM (req.file.buffer).
+Controller:
+Reads req.file.buffer.
+Sends this buffer to ImageKit SDK's upload() function.
+Also passes this same buffer to our text extractors (e.g., pdf-parse or mammoth) to get the text content.
+Cleanup: The request ends, and the RAM is freed.
+
+
+-----------------------------------------------------------
+
+We extract the text at the same time (essentially), but in this order:
+
+Multer puts file in RAM (req.file.buffer).
+Controller:
+Sends req.file.buffer to ImageKit (Upload).
+WHILE that is happening (or right after), we use THE SAME BUFFER (req.file.buffer) to extract the text.
+We do NOT download it back from ImageKit.
+
+Why? Because we already have the file in our hands (in RAM). It would be wasteful to upload it, and then download it again just to read it.
+
+So:
+
+Buffer -> ImageKit (for storage).
+Buffer -> Data Processor (for text extraction).
+Both use the same req.file.buffer that Multer gave us. This is the most efficient way.
+=====================================================================
+
+add web Tool calling feature auto and selected
