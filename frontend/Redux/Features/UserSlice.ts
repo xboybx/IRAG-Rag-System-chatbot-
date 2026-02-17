@@ -73,14 +73,25 @@ export const logoutUser = createAsyncThunk(
 );
 
 // Check Auth (Get Current User / Refresh)
-// This calls /user/me to get the user based on the cookie/token
+// This first tries to refresh the token, then gets the user
 export const checkAuth = createAsyncThunk(
     "auth/checkAuth",
     async (_, { rejectWithValue }) => {
         try {
-            // axiosInstance interceptors handle token attachment and refreshing automatically
-            const response = await axiosInstance.get(`/user/me`);
-            return response.data;
+            // First, try to refresh the token using the HttpOnly cookie
+            const refreshResponse = await axios.post(
+                `${API_URL}/user/refresh`,
+                {},
+                { withCredentials: true }
+            );
+
+            const newToken = refreshResponse.data.short_lived_Token;
+            const user = refreshResponse.data.user;
+
+            return {
+                user,
+                short_lived_Token: newToken
+            };
         } catch (error: any) {
             return rejectWithValue("Session expired");
         }
