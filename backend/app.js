@@ -9,10 +9,10 @@ const AIRoutes = require("./Routes/ai.Routes");
 const cors = require("cors");
 
 // Remove trailing slash from frontend URL to prevent CORS issues
-const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+// const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 
 app.use(cors({
-    origin: frontendUrl,
+    origin: "*",
     credentials: true,
 }));
 app.use(express.json());
