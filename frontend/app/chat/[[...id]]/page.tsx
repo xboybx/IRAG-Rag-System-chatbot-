@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/Redux/Store';
+import { addMessage, setLoading, setModel, setConversationId } from '@/Redux/Features/Chatslice';
+import { toggleSidebar, setSidebarOpen, toggleUploadModal, setUploadModalOpen } from '@/Redux/Features/UIslice';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,50 +32,52 @@ import {
 export default function ChatPage() {
     const params = useParams();
     const router = useRouter();
-    const conversationId = params?.id as string | undefined;
+    const conversationIdParam = params?.id as string | undefined;
 
-    const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+    // Redux Hooks
+    const dispatch = useDispatch();
+    const { messages, isLoading, model, currentConversationId } = useSelector((state: RootState) => state.chat);
+    const { isSidebarOpen, isUploadModalOpen } = useSelector((state: RootState) => state.ui);
+
+    // Local State (Input is fine to keep local as it's transient)
     const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
-    // Options State
-    const [model, setModel] = useState("GPT-4o");
+    // Additional Local Options (Can be moved to Redux later if needed globally)
     const [ragEnabled, setRagEnabled] = useState(true);
     const [webSearch, setWebSearch] = useState(false);
-
-    // Upload Modal State
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
-    // Sidebar State
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // Load conversation when ID changes
+    // Sync URL ID with Redux
     useEffect(() => {
-        if (conversationId) {
-            // TODO: Load conversation from backend
-            console.log('Loading conversation:', conversationId);
+        if (conversationIdParam && conversationIdParam !== currentConversationId) {
+            dispatch(setConversationId(conversationIdParam));
+            // TODO: Dispatch thunk to load conversation from backend
+            console.log('Loading conversation:', conversationIdParam);
         }
-    }, [conversationId]);
+    }, [conversationIdParam, currentConversationId, dispatch]);
 
     const handleSend = () => {
         if (!input.trim()) return;
-        const userMsg = { role: 'user', content: input };
-        setMessages(prev => [...prev, userMsg]);
-        setInput('');
-        setIsLoading(true);
 
+        // 1. Add User Message
+        dispatch(addMessage({ role: 'user', content: input }));
+
+        // 2. Set Loading
+        dispatch(setLoading(true));
+        setInput('');
+
+        // 3. Simulate Response (Replace with real API call later)
         setTimeout(() => {
-            setMessages(prev => [...prev, {
+            dispatch(addMessage({
                 role: 'assistant',
                 content: `[${model} | RAG: ${ragEnabled ? 'ON' : 'OFF'} | Web: ${webSearch ? 'ON' : 'OFF'}] I'm searching for that information...`
-            }]);
-            setIsLoading(false);
+            }));
+            dispatch(setLoading(false));
         }, 1000);
     };
 
@@ -93,7 +99,7 @@ export default function ChatPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-[4px] animate-in fade-in duration-300">
                     <div className="relative w-full max-w-sm mx-4 bg-white/30 backdrop-blur-[40px] saturate-200 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-[32px] p-8 animate-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/50">
                         <button
-                            onClick={() => setIsUploadModalOpen(false)}
+                            onClick={() => dispatch(setUploadModalOpen(false))}
                             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-colors"
                         >
                             <X className="w-5 h-5 text-foreground/70" />
@@ -134,7 +140,7 @@ export default function ChatPage() {
                 <div className={`absolute top-0 left-0 h-full z-20 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                     <ConversationSidebar
                         isOpen={isSidebarOpen}
-                        currentConversationId={conversationId}
+                        currentConversationId={currentConversationId || undefined}
                     />
                 </div>
 
@@ -146,7 +152,7 @@ export default function ChatPage() {
                         <div className="flex items-center gap-3">
                             {/* Sidebar Toggle (replaces Sparkles icon) */}
                             <button
-                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                onClick={() => dispatch(toggleSidebar())}
                                 className="w-10 h-10 flex items-center justify-center group hover:scale-105 transition-transform duration-300"
                             >
                                 <Menu className="w-5 h-5 text-black dark:text-white transition-colors duration-300" />
@@ -270,7 +276,7 @@ export default function ChatPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => setIsUploadModalOpen(true)}
+                                                onClick={() => dispatch(setUploadModalOpen(true))}
                                                 className="h-9 w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5 active:scale-95"
                                             >
                                                 <Plus className="w-5 h-5 stroke-[2.5px]" />
@@ -307,20 +313,27 @@ export default function ChatPage() {
                                                         variant="ghost"
                                                         className="h-8 px-3 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-colors border border-black/5 dark:border-white/5 text-xs font-medium flex items-center gap-1.5"
                                                     >
-                                                        {model}
+                                                        {model === 'auto' ? 'Auto' :
+                                                            model === 'arcee-ai/trinity-large-preview:free' ? 'Arce-Large' :
+                                                                model === 'upstage/solar-pro-3:free' ? 'Solar-Pro-3' :
+                                                                    model === 'liquid/lfm-2.5-1.2b-thinking:free' ? 'LFM Thinking' :
+                                                                        model}
                                                         <ChevronDown className="w-3 h-3 opacity-50" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent className="w-40 mb-4 mr-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-white/20 shadow-xl rounded-xl p-1.5" side="top" align="end">
-                                                    <DropdownMenuRadioGroup value={model} onValueChange={setModel}>
-                                                        <DropdownMenuRadioItem value="GPT-4o" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            GPT-4o
+                                                <DropdownMenuContent className="w-56 mb-4 mr-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-white/20 shadow-xl rounded-xl p-1.5" side="top" align="end">
+                                                    <DropdownMenuRadioGroup value={model} onValueChange={(val) => dispatch(setModel(val))}>
+                                                        <DropdownMenuRadioItem value="auto" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            Auto (Smart Select)
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="Claude 3" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Claude 3
+                                                        <DropdownMenuRadioItem value="arcee-ai/trinity-large-preview:free" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            Arce-Large
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="Gemini Pro" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Gemini Pro
+                                                        <DropdownMenuRadioItem value="upstage/solar-pro-3:free" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            Solar-Pro-3
+                                                        </DropdownMenuRadioItem>
+                                                        <DropdownMenuRadioItem value="liquid/lfm-2.5-1.2b-thinking:free" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            LFM Thinking (1.2B)
                                                         </DropdownMenuRadioItem>
                                                     </DropdownMenuRadioGroup>
                                                 </DropdownMenuContent>

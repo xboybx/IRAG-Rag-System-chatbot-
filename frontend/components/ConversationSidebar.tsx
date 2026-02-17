@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/Redux/Store';
+import { addConversation, deleteConversation } from '@/Redux/Features/ConversationHistorySlice';
+import { clearMessages, setConversationId } from '@/Redux/Features/Chatslice';
 
 interface Conversation {
     id: string;
@@ -18,19 +22,17 @@ interface ConversationSidebarProps {
 
 export default function ConversationSidebar({ isOpen, currentConversationId }: ConversationSidebarProps) {
     const router = useRouter();
-
-    // Mock conversations - replace with actual data from your backend
-    const conversations: Conversation[] = [
-        { id: '1', title: 'RAG System Overview', timestamp: '2024-01-20' },
-        { id: '2', title: 'Web Search Integration', timestamp: '2024-01-19' },
-        { id: '3', title: 'AI Model Comparison', timestamp: '2024-01-18' },
-    ];
+    const conversations = useSelector((state: RootState) => state.conversationsHistory.conversations);
+    const dispatch = useDispatch();
 
     const handleNewConversation = () => {
+        dispatch(clearMessages());
+        dispatch(setConversationId(null));
         router.push('/chat');
     };
 
     const handleSelectConversation = (id: string) => {
+        dispatch(setConversationId(id));
         router.push(`/chat/${id}`);
     };
 
