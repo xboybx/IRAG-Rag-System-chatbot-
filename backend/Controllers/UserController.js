@@ -51,7 +51,8 @@ const User_Register = async (req, res) => {
         res.cookie("token", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "strict",
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         })
 
         return res.status(201).json({
@@ -110,7 +111,8 @@ const User_Login = async (req, res) => {
         res.cookie("token", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "strict",
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         })
 
         return res.status(201).json({
@@ -140,7 +142,7 @@ const User_Logout = async (req, res) => {
         res.clearCookie("token", {
             httpOnly: true,
             secure: true,
-            sameSite: "strict",
+            sameSite: "none",
         })
 
         return res.status(201).json({
@@ -217,7 +219,8 @@ const User_Refresh = async (req, res) => {
         res.cookie("token", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "strict",
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         })
 
         return res.status(201).json({
