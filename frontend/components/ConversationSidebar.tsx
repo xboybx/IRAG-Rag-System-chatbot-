@@ -9,7 +9,7 @@ import { RootState } from '@/Redux/Store';
 import { clearMessages, setConversationId } from '@/Redux/Features/Chatslice';
 import { fetchConversations, deleteConversationThunk, addConversation } from '@/Redux/Features/ConversationHistorySlice';
 import { useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/Redux/axiosInstance';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
 
 interface Conversation {
@@ -29,8 +29,6 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
     const { isAuthenticated } = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
 
-    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchConversations());
@@ -47,9 +45,9 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
             dispatch(clearMessages());
 
             // 2. Call Backend to create new conversation
-            const response = await axios.post(`${API_URL}/ai/create-conversation`, {
+            const response = await axiosInstance.post(`/ai/create-conversation`, {
                 title: "New Chat"
-            }, { withCredentials: true });
+            });
 
             const newConv = response.data.data;
 
