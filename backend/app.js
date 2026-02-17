@@ -17,6 +17,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.set("trust proxy", 1); // Trust the first proxy (Render load balancer)
 app.use(express.urlencoded({ extended: true }))
 
 app.get("/", (req, res) => {
