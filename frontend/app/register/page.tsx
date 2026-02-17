@@ -5,16 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Mail, Lock, User } from 'lucide-react';
 import { useState } from 'react';
+import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
+import { registerUser } from '@/Redux/Features/UserSlice';
+import { useRouter } from 'next/navigation';
+
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleRegister = (e: React.FormEvent) => {
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const dispatch = useAppDispatch();
+    const router = useRouter();
+    const { isLoading, isError, errorMessage } = useAppSelector((state) => state.auth);
+    const [localError, setLocalError] = useState('');
+
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement registration logic
-        console.log('Register:', { name, email, password });
+        setLocalError('');
+
+        if (password !== confirmPassword) {
+            setLocalError("Passwords do not match");
+            return;
+        }
+
+        const result = await dispatch(registerUser({ name, email, password, confirmPassword }));
+
+        if (registerUser.fulfilled.match(result)) {
+            router.push('/chat');
+        }
     };
 
     return (
@@ -116,6 +136,25 @@ export default function RegisterPage() {
                                 <p className="text-xs text-white/50 mt-1">Must be at least 8 characters</p>
                             </div>
 
+                            {/* Confirm Password Field */}
+                            <div className="space-y-2">
+                                <label htmlFor="confirmPassword" className="text-sm font-medium text-white/90">
+                                    Confirm Password
+                                </label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                                    <Input
+                                        id="confirmPassword"
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="pl-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-white/40 rounded-xl"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
                             {/* Terms */}
                             <div className="flex items-start gap-2">
                                 <input
@@ -132,13 +171,30 @@ export default function RegisterPage() {
                                 </label>
                             </div>
 
+                            {/* Error Message */}
+                            {(isError || localError) && (
+                                <div className="text-red-400 text-sm text-center bg-red-400/10 p-2 rounded-lg border border-red-400/20">
+                                    {localError || errorMessage}
+                                </div>
+                            )}
+
                             {/* Submit Button */}
                             <Button
                                 type="submit"
-                                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-base font-medium shadow-xl hover:scale-[1.02] transition-all group"
+                                disabled={isLoading}
+                                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-base font-medium shadow-xl hover:scale-[1.02] transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                Create account
-                                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                {isLoading ? (
+                                    <span className="flex items-center gap-2">
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Creating account...
+                                    </span>
+                                ) : (
+                                    <>
+                                        Create account
+                                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
                             </Button>
                         </form>
 

@@ -18,6 +18,7 @@ const chatController = async (req, res) => {
     try {
         let { conversationId, message, selectedModel, history, useRag, useWebSearch } = req.body;
         const CurrentUser = req.user.id;
+        const isStreaming = true; // Force streaming for now
 
         if (!CurrentUser) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -71,7 +72,12 @@ const chatController = async (req, res) => {
 
         // --- WEB SEARCH LOGIC ---
         // Check if manual (true) or auto ("auto" + keyword match)
-        if (useWebSearch === true || (useWebSearch === "auto" && shouldAutoSearch(message))) {
+        // Ensure strictly boolean or "auto" string.
+        const isManualSearch = useWebSearch === true;
+        const isAutoSearch = useWebSearch === "auto" && shouldAutoSearch(message);
+
+        if (isManualSearch || isAutoSearch) {
+            console.log(`[Controller] Web Search Triggered: Manual=${isManualSearch}, Auto=${isAutoSearch}`);
             const webContext = await performWebSearch(message);
             if (webContext) {
                 // Inject search results as a SYSTEM message so the AI "knows" it
@@ -107,66 +113,101 @@ const chatController = async (req, res) => {
             content: message
         });
 
-        // --- PARALLEL EXECUTION ---
-        // 1. Save User Message (Async, but we wait for it to ensure data integrity)
-        const saveUserMessagePromise = MessageModel.create({
+        // 1. Save User Message (Async, wait for it)
+        const saveUserMessagePromise = await MessageModel.create({
             user_id: CurrentUser,
             conversation_id: conversationId,
             role: "user",
             content: message
         });
 
-        // 2. Generate AI Response
-        const generateResponsePromise = generateResponse(contextMessages, selectedModel);
-
-        const [saveUserMessage, aiResponse] = await Promise.all([saveUserMessagePromise, generateResponsePromise]);
-
-
-        if (!saveUserMessage) {
-            return res.status(500).json({
-                message: "Error in saveUserMessage",
-                error: "Failed to save user message to DB"
-            });
-        }
 
         // Log the context messages for debugging
         console.log("\n--------------------\n[Controller] Context Messages sent to AI:\n--------------------\n", JSON.stringify(contextMessages, null, 2), "\n--------------------\n");
 
 
-        if (aiResponse.error) {
-            return res.status(500).json({
-                message: "Error in generateResponse",
-                error: aiResponse.error
+        // --- STREAMING OR NORMAL RESPONSE ---
+        if (isStreaming) {
+            // Set Headers for Streaming
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('Transfer-Encoding', 'chunked');
+
+            // Optionally send the Conversation ID as a metadata header or first chunk
+            // Ideally we'd use SSE (text/event-stream) for structured data, but plain text is easier for "typewriter"
+            // We can send the ID in a header for the frontend to read if needed.
+            res.setHeader('x-conversation-id', conversationId);
+
+            const stream = await generateResponse(contextMessages, selectedModel, true);
+
+            if (stream.error) {
+                return res.status(500).json(stream);
+            }
+
+            let fullAiResponse = "";
+
+            try {
+                for await (const chunk of stream) {
+                    const content = chunk.choices[0]?.delta?.content || "";
+                    if (content) {
+                        res.write(content);
+                        fullAiResponse += content;
+                    }
+                }
+            } catch (streamError) {
+                console.error("Stream Error:", streamError);
+                res.write("\n[Error: Stream interrupted]");
+            } finally {
+                res.end(); // End the stream
+
+                // Save full response to DB
+                if (fullAiResponse) {
+                    await MessageModel.create({
+                        user_id: CurrentUser,
+                        conversation_id: conversationId,
+                        role: "assistant", // Using 'assistant' to match MessageModel enum
+                        content: fullAiResponse
+                    });
+                    console.log("[Controller] Saved full AI response to DB.");
+                }
+            }
+
+        } else {
+            // NORMAL (Non-Streaming) logic
+            const aiResponse = await generateResponse(contextMessages, selectedModel, false);
+
+            if (aiResponse.error) {
+                return res.status(500).json({
+                    message: "Error in generateResponse",
+                    error: aiResponse.error
+                });
+            }
+
+            // Save AI response in database
+            const saveAIMessage = await MessageModel.create({
+                user_id: CurrentUser,
+                conversation_id: conversationId,
+                role: "assistant",
+                content: aiResponse.content
+            });
+
+            return res.status(200).json({
+                message: "Success",
+                conversationId: conversationId,
+                data: aiResponse
             });
         }
-
-        // Save AI response in database
-        const saveAIMessage = await MessageModel.create({
-            user_id: CurrentUser,
-            conversation_id: conversationId,
-            role: "assistant",
-            content: aiResponse.content // Extract content
-        });
-
-        if (!saveAIMessage) {
-            return res.status(500).json({
-                message: "Error in saveAIMessage",
-                error: "Failed to save AI message to DB"
-            });
-        }
-
-        return res.status(200).json({
-            message: "Success",
-            conversationId: conversationId, // Return ID so frontend can update URL
-            data: aiResponse
-        });
 
     } catch (error) {
         console.error("ChatController Error:", error);
-        return res.status(500).json({
-            message: "Error ChatController",
-            error: error.message
-        });
+        // If headers sent, we can't send JSON error
+        if (res.headersSent) {
+            res.end();
+        } else {
+            return res.status(500).json({
+                message: "Error ChatController",
+                error: error.message
+            });
+        }
     }
 };
 
@@ -291,9 +332,99 @@ const DatasetUploadController = async (req, res) => {
     }
 }
 
+// Get Conversations History
+const getConversationsController = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const conversations = await ConversationModel.find({ user_id: req.user.id })
+            .sort({ createdAt: -1 })
+            .select("title createdAt updatedAt"); // Select only necessary fields
+
+        return res.status(200).json({
+            message: "Success",
+            data: conversations
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error getConversationsController",
+            error: error.message
+        });
+    }
+};
+
+// Delete Conversation
+const deleteConversationController = async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const userId = req.user.id;
+
+        if (!conversationId) {
+            return res.status(400).json({ message: "Conversation ID is required" });
+        }
+
+
+        const conversation = await ConversationModel.findOneAndDelete({
+            _id: conversationId,
+            user_id: userId
+        });
+
+        if (!conversation) {
+            return res.status(404).json({ message: "Conversation not found or unauthorized" });
+        }
+
+        // Also delete messages associated with this conversation
+        await MessageModel.deleteMany({ conversation_id: conversationId });
+
+        return res.status(200).json({
+            message: "Conversation deleted successfully",
+            conversationId: conversationId
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error deleteConversationController",
+            error: error.message
+        });
+    }
+};
+
+
+// Get Messages for a Conversation
+const getMessagesController = async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const userId = req.user.id;
+
+        // Verify conversation belongs to user
+        const conversation = await ConversationModel.findOne({
+            _id: conversationId,
+            user_id: userId
+        });
+
+        if (!conversation) {
+            return res.status(404).json({ message: "Conversation not found or unauthorized" });
+        }
+
+        const messages = await MessageModel.find({ conversation_id: conversationId })
+            .sort({ createdAt: 1 }); // Oldest first
+
+        return res.status(200).json({
+            message: "Success",
+            data: messages
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error getMessagesController",
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     chatController,
     CreateConversationController,
-    DatasetUploadController
+    DatasetUploadController,
+    getConversationsController,
+    deleteConversationController,
+    getMessagesController
+
 };

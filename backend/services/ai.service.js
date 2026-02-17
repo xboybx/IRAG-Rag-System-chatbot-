@@ -55,7 +55,7 @@ const summarizeHistory = async (messages) => {
     }
 };
 
-const generateResponse = async (messages, selectedModel) => {
+const generateResponse = async (messages, selectedModel, stream = false) => {
     try {
         let modelsToTry = [];
 
@@ -70,13 +70,11 @@ const generateResponse = async (messages, selectedModel) => {
             modelsToTry.push(isSelectedModel_Valid);
         }
 
-        // OPTIONAL: Summarize if history is too long (e.g. > 10 messages)
-        // const finalMessages = Messages.length > 10 ? await summarizeHistory(Messages) : Messages;
         const finalMessages = messages.length > 10 ? await summarizeHistory(messages) : messages;
 
         for (let model of modelsToTry) {
             try {
-                console.log(`\n--------------------\n[AI Service] Attempting model: ${model}\n--------------------\n`);
+                console.log(`\n--------------------\n[AI Service] Attempting model: ${model} (Stream: ${stream})\n--------------------\n`);
 
                 const response = await openai.chat.completions.create({
                     model: model,
@@ -84,12 +82,19 @@ const generateResponse = async (messages, selectedModel) => {
                         { role: "system", content: systemPrompt() },
                         ...finalMessages
                     ],
+                    stream: stream, // Pass stream parameter
                 });
+
+                if (stream) {
+                    // Start reading the stream immediately to catch initial errors? 
+                    // No, just return the stream. Controller will handle iteration.
+                    return response;
+                }
+
                 console.log("\n--------------------\n", "[AI Service] Response from model: ", response.choices[0].message.content, "\n--------------------\n");
                 return { content: response.choices[0].message.content };
             } catch (error) {
                 console.log(`\n--------------------\n`, "[AI Service] Model ", model, " failed:", error.message, "\n--------------------\n");
-                lastError = error;
                 continue;
             }
         }

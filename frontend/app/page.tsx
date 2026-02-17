@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Menu } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/Redux/hooks';
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     setMounted(true);
@@ -52,16 +54,26 @@ export default function Home() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" className="text-black hover:bg-white/10 hover:text-black">
-              Log in
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button className="bg-white/20 hover:bg-white/30 text-black border border-white/30 backdrop-blur-md">
-              Sign up
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/chat">
+              <Button className="bg-white/20 hover:bg-white/30 text-black border border-white/30 backdrop-blur-md">
+                Go to Chat
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="ghost" className="text-black hover:bg-white/10 hover:text-black">
+                  Log in
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button className="bg-white/20 hover:bg-white/30 text-black border border-white/30 backdrop-blur-md">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </header>
 

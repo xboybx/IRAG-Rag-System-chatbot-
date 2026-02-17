@@ -6,8 +6,11 @@ import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/Redux/Store';
-import { addConversation, deleteConversation } from '@/Redux/Features/ConversationHistorySlice';
 import { clearMessages, setConversationId } from '@/Redux/Features/Chatslice';
+import { fetchConversations, deleteConversationThunk, addConversation } from '@/Redux/Features/ConversationHistorySlice';
+import { useEffect } from 'react';
+import axios from 'axios';
+import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
 
 interface Conversation {
     id: string;
@@ -22,13 +25,48 @@ interface ConversationSidebarProps {
 
 export default function ConversationSidebar({ isOpen, currentConversationId }: ConversationSidebarProps) {
     const router = useRouter();
-    const conversations = useSelector((state: RootState) => state.conversationsHistory.conversations);
-    const dispatch = useDispatch();
+    const conversations = useAppSelector((state) => state.conversationsHistory.conversations);
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
+    const dispatch = useAppDispatch();
 
-    const handleNewConversation = () => {
-        dispatch(clearMessages());
-        dispatch(setConversationId(null));
-        router.push('/chat');
+    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchConversations());
+        }
+    }, [dispatch, isAuthenticated]);
+
+    const handleNewConversation = async () => {
+        if (!isAuthenticated) {
+            router.push('/login');
+            return;
+        }
+        try {
+            // 1. Clear current messages first for immediate feedback
+            dispatch(clearMessages());
+
+            // 2. Call Backend to create new conversation
+            const response = await axios.post(`${API_URL}/ai/create-conversation`, {
+                title: "New Chat"
+            }, { withCredentials: true });
+
+            const newConv = response.data.data;
+
+            // 3. Update Redux State
+            dispatch(setConversationId(newConv._id));
+            dispatch(addConversation({
+                id: newConv._id,
+                title: newConv.title,
+                timestamp: new Date().toLocaleDateString()
+            }));
+
+            // 4. Navigate
+            router.push(`/chat/${newConv._id}`);
+
+        } catch (error) {
+            console.error("Failed to create conversation", error);
+        }
     };
 
     const handleSelectConversation = (id: string) => {
@@ -70,9 +108,16 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
                                     <p className="text-xs opacity-60 mt-0.5">{conversation.timestamp}</p>
                                 </div>
                                 <button
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                         e.stopPropagation();
-                                        // Handle delete
+                                        if (confirm("Delete this conversation?")) {
+                                            await dispatch(deleteConversationThunk(conversation.id));
+                                            if (currentConversationId === conversation.id) {
+                                                router.push('/chat');
+                                                dispatch(clearMessages());
+                                                dispatch(setConversationId(null));
+                                            }
+                                        }
                                     }}
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-opacity"
                                 >

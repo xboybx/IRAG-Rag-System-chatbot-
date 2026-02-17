@@ -60,10 +60,17 @@ const performRagCheck = async (conversationId, userMessage) => {
 
         console.log(`[RAG Service] Found ${vectorResults.length} chunks. Top score: ${vectorResults[0]?.score}\n--------------------\n`);
 
-        // 4. Threshold Check (0.60 is a reasonable default) ans construct a prompt
-        if (vectorResults.length > 0 && vectorResults[0].score > 0.60) {
-            const contextText = vectorResults.map(chunk => chunk.text).join("\n---\n");
-            return `Use the following context from user's uploaded documents to answer the question:\n\n${contextText}`;
+        // 4. Threshold Check (adjusted to 0.35 for better recall) 
+        if (vectorResults.length > 0) {
+            console.log(`[RAG Service] Top Match Score: ${vectorResults[0]?.score}`);
+
+            // Filter results that meet the minimum relevance threshold
+            const relevantChunks = vectorResults.filter(chunk => chunk.score > 0.35);
+
+            if (relevantChunks.length > 0) {
+                const contextText = relevantChunks.map(chunk => chunk.text).join("\n---\n");
+                return `Use the following context from user's uploaded documents to answer the question:\n\n${contextText}`;
+            }
         }
 
         return null;

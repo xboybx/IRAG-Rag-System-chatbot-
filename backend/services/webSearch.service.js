@@ -16,8 +16,8 @@ const performWebSearch = async (query) => {
             },
             body: JSON.stringify({
                 query: query,
-                max_results: 5,
-                search_depth: "basic",
+                max_results: 7, // Increased from 5
+                // search_depth: "basic", // Removed to default to standard (better coverage)
             })
         })
         if (!response.ok) {
@@ -27,7 +27,7 @@ const performWebSearch = async (query) => {
             Your 
             AIcontroller.js
              will see null, simply skip the search context injection, and proceed to generate an answer normally using only the AI's internal knowledge (or RAG if available). */
-            const errorBody = await response.text(); // Get detailed error from Tavily
+            const errorBody = await response.text();
             throw new Error(`Search failed: ${response.status} ${response.statusText} - ${errorBody}`);
         }
 

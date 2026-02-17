@@ -135,13 +135,12 @@ const generateEmbeddingForChunks = async (chunks, fileId, conversationId) => {
 
             embeddingDocs.push({
                 fileId: fileId,
+                text: chunk.pageContent, // Schema expects 'text' at top level
                 embedding: embedding,
-                text: chunk.pageContent,
                 metadata: {
                     chunkIndex: i,
                     conversationId: conversationId
                 }
-
             })
         }
         return embeddingDocs;

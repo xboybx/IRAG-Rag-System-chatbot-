@@ -5,15 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Mail, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
+import { loginUser } from '@/Redux/Features/UserSlice';
+import { useRouter } from 'next/navigation';
+
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleLogin = (e: React.FormEvent) => {
+    const dispatch = useAppDispatch();
+    const router = useRouter();
+    const { isLoading, isError, errorMessage } = useAppSelector((state) => state.auth);
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement login logic
-        console.log('Login:', { email, password });
+        const result = await dispatch(loginUser({ email, password }));
+        if (loginUser.fulfilled.match(result)) {
+            router.push('/chat');
+        }
     };
 
     return (
@@ -102,13 +112,30 @@ export default function LoginPage() {
                                 </a>
                             </div>
 
+                            {/* Error Message */}
+                            {isError && (
+                                <div className="text-red-400 text-sm text-center bg-red-400/10 p-2 rounded-lg border border-red-400/20">
+                                    {errorMessage}
+                                </div>
+                            )}
+
                             {/* Submit Button */}
                             <Button
                                 type="submit"
-                                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-base font-medium shadow-xl hover:scale-[1.02] transition-all group"
+                                disabled={isLoading}
+                                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-base font-medium shadow-xl hover:scale-[1.02] transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                Log in
-                                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                {isLoading ? (
+                                    <span className="flex items-center gap-2">
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Logging in...
+                                    </span>
+                                ) : (
+                                    <>
+                                        Log in
+                                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
                             </Button>
                         </form>
 
