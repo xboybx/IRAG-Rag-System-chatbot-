@@ -59,6 +59,22 @@
   @apply bg-white/50 backdrop-blur-sm border-white/30 focus:bg-white/80 transition-all;
 }
 
+/* Hide Scrollbar (native + Radix UI) */
+.scrollbar-hide,
+.scrollbar-hide * {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar,
+.scrollbar-hide *::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide [data-radix-scroll-area-scrollbar] {
+  display: none !important;
+}
+
 /* Gradient Mesh Utility */
 @utility bg-gradient-radial {
   background-image: radial-gradient(circle, var(--tw-gradient-stops));

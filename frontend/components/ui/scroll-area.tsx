@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils"
 
 const ScrollArea = React.forwardRef<
     React.ElementRef<typeof ScrollAreaPrimitive.Root>,
-    React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
->(({ className, children, ...props }, ref) => {
+    React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & { showScrollBar?: boolean }
+>(({ className, children, showScrollBar = true, ...props }, ref) => {
     return (
         <ScrollAreaPrimitive.Root
             ref={ref}
@@ -18,7 +18,7 @@ const ScrollArea = React.forwardRef<
             <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
                 {children}
             </ScrollAreaPrimitive.Viewport>
-            <ScrollBar />
+            <ScrollBar className={cn(!showScrollBar && "invisible opacity-0 pointer-events-none w-0")} />
             <ScrollAreaPrimitive.Corner />
         </ScrollAreaPrimitive.Root>
     )

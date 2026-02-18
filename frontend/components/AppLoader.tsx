@@ -8,43 +8,43 @@ const featureCards = [
         icon: Brain,
         title: "AI-Powered Answers",
         description: "Get intelligent responses powered by advanced language models",
-        gradient: "from-violet-500 to-purple-600",
+        gradient: "from-white/80 to-white/40",
     },
     {
         icon: FileText,
         title: "Document Analysis",
         description: "Upload PDFs, docs & more — IRAG reads and understands them for you",
-        gradient: "from-pink-500 to-rose-600",
+        gradient: "from-gray-300 to-gray-500",
     },
     {
         icon: Search,
         title: "RAG Technology",
         description: "Retrieval-Augmented Generation finds the most relevant context",
-        gradient: "from-blue-500 to-cyan-600",
+        gradient: "from-slate-300 to-slate-500",
     },
     {
         icon: Shield,
         title: "Secure & Private",
         description: "Your documents and conversations are encrypted and protected",
-        gradient: "from-emerald-500 to-teal-600",
+        gradient: "from-zinc-300 to-zinc-500",
     },
     {
         icon: Zap,
         title: "Lightning Fast",
         description: "Optimized pipeline for quick responses even on complex queries",
-        gradient: "from-amber-500 to-orange-600",
+        gradient: "from-neutral-300 to-neutral-500",
     },
     {
         icon: MessageSquare,
         title: "Conversational Memory",
         description: "IRAG remembers context across your entire conversation",
-        gradient: "from-indigo-500 to-blue-600",
+        gradient: "from-stone-300 to-stone-500",
     },
     {
         icon: Globe,
         title: "Multi-Model Support",
         description: "Powered by multiple AI models with intelligent fallback",
-        gradient: "from-fuchsia-500 to-pink-600",
+        gradient: "from-gray-200 to-gray-400",
     },
 ];
 
@@ -62,7 +62,7 @@ function CardContent({ card }: { card: typeof featureCards[0] }) {
             {/* Card gradient accent bar */}
             <div className={`absolute top-0 left-0 right-0 h-1 bg-linear-to-r ${card.gradient}`} />
             <div className="flex items-start gap-4">
-                <div className={`shrink-0 p-3 rounded-xl bg-linear-to-br ${card.gradient} shadow-lg`}>
+                <div className={`shrink-0 p-3 rounded-xl bg-linear-to-br from-white/20 to-white/5 border border-white/10 shadow-lg`}>
                     <Icon className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -123,12 +123,6 @@ export default function AppLoader() {
 
                 {/* Logo / Brand */}
                 <div className="flex flex-col items-center gap-3">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-linear-to-r from-pink-500 to-violet-500 rounded-2xl blur-xl opacity-50 animate-pulse" />
-                        <div className="relative bg-slate-900/80 border border-white/10 backdrop-blur-xl p-4 rounded-2xl">
-                            <Brain className="w-10 h-10 text-white" />
-                        </div>
-                    </div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">IRAG</h1>
                     <p className="text-sm text-white/50">Setting things up{dots}</p>
                 </div>
@@ -190,7 +184,7 @@ export default function AppLoader() {
                         <div
                             key={i}
                             className={`rounded-full transition-all duration-500 ${i === activeIndex
-                                ? 'w-6 h-2 bg-linear-to-r from-pink-500 to-violet-500'
+                                ? 'w-6 h-2 bg-linear-to-r from-white/90 to-gray-400'
                                 : 'w-2 h-2 bg-white/20'
                                 }`}
                         />
@@ -200,7 +194,7 @@ export default function AppLoader() {
                 {/* Progress Bar */}
                 <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
-                        className="h-full rounded-full bg-linear-to-r from-pink-500 via-violet-500 to-blue-500"
+                        className="h-full rounded-full bg-linear-to-r from-white/80 via-gray-300 to-white/80"
                         style={{
                             animation: 'progressSlide 2s ease-in-out infinite',
                         }}

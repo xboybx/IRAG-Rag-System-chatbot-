@@ -313,7 +313,7 @@ export default function ChatPage() {
                 <div
                     className={`
                         fixed inset-y-0 left-0 z-30 w-64 md:w-64
-                        transform transition-transform duration-300 ease-in-out
+                        transform transition-all duration-300 ease-in-out
                         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
                         md:relative md:translate-x-0 md:shrink-0
                         ${!isSidebarOpen && "md:-ml-64!"} 
@@ -488,7 +488,7 @@ export default function ChatPage() {
                     <main className="flex-1 flex flex-col relative overflow-hidden rounded-[20px] md:rounded-[40px] mx-2 mb-2 border border-white/20 dark:border-white/5 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20">
 
                         {/* Messages */}
-                        <ScrollArea className="flex-1 px-2 md:px-0 scroll-smooth">
+                        <ScrollArea className="flex-1 px-2 md:px-0 scroll-smooth scrollbar-hide" showScrollBar={false}>
                             <div className="w-full max-w-[1600px] mx-auto space-y-6 md:space-y-8 py-4 md:py-8 pb-32 md:pb-64">
                                 {isFetchingMessages ? (
                                     <div className="h-[50vh] flex flex-col items-center justify-center animate-in fade-in duration-500">
