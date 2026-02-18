@@ -151,7 +151,7 @@ export default function ChatPage() {
             if (newConversationId && newConversationId !== currentConversationId) {
                 dispatch(setConversationId(newConversationId));
                 dispatch(fetchConversations());
-                window.history.pushState({}, '', `/chat/${newConversationId}`); // Update URL silently
+                router.replace(`/chat/${newConversationId}`, { scroll: false }); // Update URL correctly with Next.js router
             }
 
 
