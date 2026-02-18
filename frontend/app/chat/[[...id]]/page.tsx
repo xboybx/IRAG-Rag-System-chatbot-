@@ -16,7 +16,7 @@ import ConversationSidebar from "@/components/ConversationSidebar";
 import {
     Send, Sparkles, Search, Moon, Sun, ArrowUp, Plus, Globe,
     Bot, Cpu, Zap, ChevronDown, Check, Database, Layers, Paperclip, Wrench,
-    FileText, Image as ImageIcon, Link2, UploadCloud, X, Menu, User, LogOut
+    FileText, Image as ImageIcon, Link2, UploadCloud, X, Menu, User, LogOut, Square
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -57,6 +57,7 @@ export default function ChatPage() {
 
     // Ref for auto-scrolling to bottom
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -114,9 +115,16 @@ export default function ChatPage() {
         else if (model === "upstage/solar-pro-3:free") backendModelName = "Solar-Pro-3";
         else if (model === "liquid/lfm-2.5-1.2b-thinking:free") backendModelName = "LFM-2.5-1.2B-Thinking";
 
+        // Create new AbortController
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
         try {
             const urlId = currentConversationId || 'new';
-            const response = await fetch(`http://localhost:5000/ai/chat/${urlId}`, { // Direct fetch for streaming
+            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+            const response = await fetch(`${API_URL}/ai/chat/${urlId}`, { // Direct fetch for streaming
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -133,6 +141,7 @@ export default function ChatPage() {
                 }),
                 // IMPORTANT: Send cookies
                 credentials: 'include',
+                signal: abortControllerRef.current.signal
             });
 
             if (!response.ok) {
@@ -166,13 +175,26 @@ export default function ChatPage() {
             }
 
             dispatch(setLoading(false));
+            abortControllerRef.current = null;
 
         } catch (error: any) {
-            console.error("Failed to send message:", error);
-            // dispatch(setError(error.message)); // Optional: Set error state
+            if (error.name === 'AbortError') {
+                console.log("Fetch aborted");
+            } else {
+                console.error("Failed to send message:", error);
+                // dispatch(setError(error.message)); // Optional: Set error state
+            }
             dispatch(setLoading(false));
             // Maybe remove the placeholder message?
         }
+    };
+
+    const handleStop = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+        dispatch(setLoading(false));
     };
 
     // Handle File Upload
@@ -510,7 +532,7 @@ export default function ChatPage() {
                                             onChange={(e) => setInput(e.target.value)}
                                             placeholder={ragEnabled ? "Ask RAG Knowledge..." : webSearch ? "Search the Web..." : "Ask anything..."}
                                             className="w-full bg-transparent border-none h-[50px] px-4 text-lg text-foreground dark:text-white placeholder:text-muted-foreground/50 dark:placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium tracking-normal"
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
                                         />
                                     </div>
 
@@ -584,12 +606,16 @@ export default function ChatPage() {
                                             </DropdownMenu>
 
                                             <Button
-                                                onClick={handleSend}
+                                                onClick={isLoading ? handleStop : handleSend}
                                                 size="icon"
-                                                disabled={!input.trim()}
-                                                className="h-10 w-10 rounded-full bg-white/60 dark:bg-white/20 hover:bg-white/80 dark:hover:bg-white/30 backdrop-blur-xl border border-white/40 dark:border-white/30 text-indigo-600 dark:text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                                disabled={!input.trim() && !isLoading}
+                                                className={`h-10 w-10 rounded-full bg-white/60 dark:bg-white/20 hover:bg-white/80 dark:hover:bg-white/30 backdrop-blur-xl border border-white/40 dark:border-white/30 text-indigo-600 dark:text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isLoading ? 'animate-pulse' : ''}`}
                                             >
-                                                <ArrowUp className="w-5 h-5 stroke-[3px]" />
+                                                {isLoading ? (
+                                                    <Square className="w-4 h-4 fill-current stroke-[3px]" />
+                                                ) : (
+                                                    <ArrowUp className="w-5 h-5 stroke-[3px]" />
+                                                )}
                                             </Button>
                                         </div>
                                     </div>

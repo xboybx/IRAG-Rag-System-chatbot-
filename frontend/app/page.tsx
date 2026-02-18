@@ -18,7 +18,7 @@ export default function Home() {
     // Wake up the backend server
     const wakeUpServer = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
         await fetch(`${backendUrl}/`);
         console.log('Backend server woke up!');
       } catch (error) {
