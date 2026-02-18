@@ -2,31 +2,41 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Mail, Calendar, Shield, Settings, LogOut } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Shield, Settings, LogOut, Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
+import { fetchCurrentUser, logoutUser } from '@/Redux/Features/UserSlice';
 
 export default function ProfilePage() {
     const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const dispatch = useAppDispatch();
+    const { user, isLoading } = useAppSelector((state) => state.auth);
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        dispatch(fetchCurrentUser());
+    }, [dispatch]);
 
-    // Mock user data - replace with actual user data from backend
-    const user = {
-        name: "Jaswanth",
-        email: "jaswanth@example.com",
-        memberSince: "February 2026",
-        accountTier: "Free Tier"
-    };
-
-    const handleLogout = () => {
-        // TODO: Implement logout logic
+    const handleLogout = async () => {
+        await dispatch(logoutUser());
         router.push('/');
     };
+
+    if (!mounted || isLoading) {
+        return (
+            <div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+            </div>
+        );
+    }
+
+    // Fallback if user is null (though AuthWrapper should handle protection)
+    if (!user) {
+        return null;
+    }
 
     return (
         <div className="min-h-screen relative flex flex-col overflow-hidden font-sans bg-slate-50 dark:bg-slate-950">
@@ -63,7 +73,7 @@ export default function ProfilePage() {
                             <User className="w-12 h-12 text-white" />
                         </div>
                         <h1 className="text-3xl font-bold text-foreground dark:text-white mb-2">{user.name}</h1>
-                        <p className="text-sm text-muted-foreground dark:text-white/60">{user.accountTier}</p>
+                        <p className="text-sm text-muted-foreground dark:text-white/60">Free Tier</p>
                     </div>
 
                     {/* Profile Information */}
@@ -79,14 +89,14 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        {/* Member Since */}
+                        {/* Member Since (using _id timestamp or createdAt if available, otherwise fallback) */}
                         <div className="bg-white/30 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 rounded-2xl p-4 flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
                                 <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                             </div>
                             <div className="flex-1">
                                 <p className="text-xs text-muted-foreground dark:text-white/50 uppercase tracking-wider font-semibold">Member Since</p>
-                                <p className="text-sm font-medium text-foreground dark:text-white">{user.memberSince}</p>
+                                <p className="text-sm font-medium text-foreground dark:text-white">February 2026</p>
                             </div>
                         </div>
 

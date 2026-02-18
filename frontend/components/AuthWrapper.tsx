@@ -19,7 +19,10 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
                 try {
                     await dispatch(checkAuth()).unwrap();
                 } catch (error) {
-                    console.error("Auth check failed:", error);
+                    // Suppress error logging for guests (no session found)
+                    if (error !== "No active session") {
+                        console.error("Auth check failed:", error);
+                    }
                 }
             }
             setIsChecking(false);

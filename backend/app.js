@@ -9,15 +9,14 @@ const AIRoutes = require("./Routes/ai.Routes");
 const cors = require("cors");
 
 // Remove trailing slash from frontend URL to prevent CORS issues
-// const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 
 app.use(cors({
-    origin: "*",
+    origin: [frontendUrl, "http://localhost:3000", "https://iragchat.vercel.app"],
     credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
-app.set("trust proxy", 1); // Trust the first proxy (Render load balancer)
 app.use(express.urlencoded({ extended: true }))
 
 app.get("/", (req, res) => {

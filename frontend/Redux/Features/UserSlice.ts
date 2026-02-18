@@ -93,7 +93,14 @@ export const checkAuth = createAsyncThunk(
                 short_lived_Token: newToken
             };
         } catch (error: any) {
-            return rejectWithValue("Session expired");
+            if (axios.isAxiosError(error)) {
+                // 400 or 401 means no valid session token was found (user is a guest)
+                if (error.response?.status === 400 || error.response?.status === 401) {
+                    return rejectWithValue("No active session");
+                }
+                return rejectWithValue(error.response?.data?.message || "Session check failed");
+            }
+            return rejectWithValue("Session check failed");
         }
     }
 );
@@ -172,8 +179,36 @@ const userSlice = createSlice({
             state.user = null;
             state.token = null;
         });
+
+        // Fetch Current User
+        builder.addCase(fetchCurrentUser.pending, (state) => {
+            state.isLoading = true;
+        });
+        builder.addCase(fetchCurrentUser.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.user = action.payload.user;
+            state.isAuthenticated = true;
+        });
+        builder.addCase(fetchCurrentUser.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isError = true;
+            state.errorMessage = action.payload as string;
+        });
     },
 });
+
+// Fetch Current User (Directly from /me)
+export const fetchCurrentUser = createAsyncThunk(
+    "auth/fetchCurrentUser",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get(`/user/me`);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || "Failed to fetch user data");
+        }
+    }
+);
 
 export const { clearError, setToken } = userSlice.actions;
 export default userSlice.reducer;

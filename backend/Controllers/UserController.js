@@ -234,6 +234,11 @@ const User_Refresh = async (req, res) => {
 
 
     } catch (err) {
+        // Handle Token Expiration or Invalid Token gracefully
+        if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: "Invalid or expired refresh token" });
+        }
+
         console.log("error Refreshing User", err);
         return res.status(500).json({
             message: "Error Refreshing user",
