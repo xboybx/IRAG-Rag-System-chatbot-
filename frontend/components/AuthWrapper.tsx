@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
 import { checkAuth } from '@/Redux/Features/UserSlice';
 import { useRouter, usePathname } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import AppLoader from './AppLoader';
 
 export default function AuthWrapper({ children }: { children: React.ReactNode }) {
     const dispatch = useAppDispatch();
@@ -54,12 +54,11 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
         }
     }, [isChecking, isAuthenticated, pathname, router]);
 
-    if (isChecking || (isLoading && !user)) {
-        return (
-            <div className="h-screen w-screen flex items-center justify-center bg-transparent">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-        );
+    // Don't block public pages enabling faster LCP (Largest Contentful Paint)
+    // The auth check will happen in background and update UI when ready
+    const publicRoutes = ['/', '/login', '/register'];
+    if (!publicRoutes.includes(pathname || '') && (isChecking || (isLoading && !user))) {
+        return <AppLoader />;
     }
 
     return <>{children}</>;

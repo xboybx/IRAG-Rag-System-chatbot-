@@ -239,7 +239,7 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="h-screen w-screen relative flex font-sans overflow-hidden selection:bg-indigo-500/30 bg-slate-50 dark:bg-slate-950">
+        <div className="h-dvh w-screen relative flex font-sans overflow-hidden selection:bg-indigo-500/30 bg-slate-50 dark:bg-slate-950">
 
             {/* Background Image */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -253,8 +253,8 @@ export default function ChatPage() {
 
             {/* Upload Modal */}
             {isUploadModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-[4px] animate-in fade-in duration-300">
-                    <div className="relative w-full max-w-sm mx-4 bg-white/30 backdrop-blur-[40px] saturate-200 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-[32px] p-8 animate-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-[4px] animate-in fade-in duration-300 px-4">
+                    <div className="relative w-full max-w-sm bg-white/30 backdrop-blur-[40px] saturate-200 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-[32px] p-6 md:p-8 animate-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/50">
                         <button
                             onClick={() => dispatch(setUploadModalOpen(false))}
                             className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-colors"
@@ -307,59 +307,83 @@ export default function ChatPage() {
             )}
 
             {/* Main Layout with Sidebar */}
-            <div className="relative z-10 w-full h-full overflow-hidden">
+            <div className="relative z-10 w-full h-full overflow-hidden flex">
 
-                {/* Sidebar - Slides from left */}
-                <div className={`absolute top-0 left-0 h-full z-20 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                {/* Sidebar - Desktop: Relative/Translated, Mobile: Absolute/Overlay */}
+                <div
+                    className={`
+                        fixed inset-y-0 left-0 z-30 w-64 md:w-64
+                        transform transition-transform duration-300 ease-in-out
+                        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                        md:relative md:translate-x-0 md:shrink-0
+                        ${!isSidebarOpen && "md:-ml-64!"} 
+                    `}
+                >
                     <ConversationSidebar
                         isOpen={isSidebarOpen}
                         currentConversationId={currentConversationId || undefined}
                     />
                 </div>
 
-                {/* Main Chat Container - Shifts right when sidebar opens */}
-                <div className={`flex flex-col h-full transition-all duration-300 ease-in-out py-2 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-0 w-full'}`}>
+                {/* Mobile Overlay for Sidebar */}
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 md:hidden"
+                        onClick={() => dispatch(toggleSidebar())}
+                    />
+                )}
+
+                {/* Main Chat Container */}
+                <div className="flex-1 flex flex-col h-full w-full min-w-0 transition-all duration-300 ease-in-out py-2 md:pl-0">
 
                     {/* Header */}
-                    <header className="flex items-center justify-between px-4 py-3 shrink-0">
-                        <div className="flex items-center gap-3">
-                            {/* Sidebar Toggle (replaces Sparkles icon) */}
+                    <header className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 shrink-0 gap-2">
+                        <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
+                            {/* Sidebar Toggle */}
                             <button
                                 onClick={() => dispatch(toggleSidebar())}
-                                className="w-10 h-10 flex items-center justify-center group hover:scale-105 transition-transform duration-300"
+                                className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center group hover:scale-105 transition-transform duration-300 md:hidden"
                             >
                                 <Menu className="w-5 h-5 text-black dark:text-white transition-colors duration-300" />
                             </button>
-                            <span className="text-lg font-bold tracking-tight text-foreground/90 font-mono">IRAG</span>
+                            {/* Desktop Toggle (only if closed, or just keep it simple) */}
+                            <button
+                                onClick={() => dispatch(toggleSidebar())}
+                                className="hidden md:flex w-10 h-10 items-center justify-center group hover:scale-105 transition-transform duration-300"
+                            >
+                                <Menu className="w-5 h-5 text-black dark:text-white transition-colors duration-300" />
+                            </button>
+
+                            <span className="text-base md:text-lg font-bold tracking-tight text-foreground/90 font-mono truncate">IRAG</span>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            {/* RAG Master Toggle */}
+                        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                            {/* RAG Master Toggle - Compact on Mobile */}
                             <button
                                 onClick={() => setRagEnabled(!ragEnabled)}
                                 className={`
-                      group relative flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 backdrop-blur-md cursor-pointer
+                      group relative flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border transition-all duration-300 backdrop-blur-md cursor-pointer
                       ${ragEnabled
                                         ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-500 dark:text-indigo-400 shadow-indigo-500/10'
                                         : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10'}
                   `}
                             >
-                                <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${ragEnabled ? 'bg-indigo-500 animate-pulse' : 'bg-slate-400'}`}></div>
-                                <span className="text-xs font-bold tracking-wide">RAG {ragEnabled ? 'ON' : 'OFF'}</span>
+                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${ragEnabled ? 'bg-indigo-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                <span className="text-[10px] md:text-xs font-bold tracking-wide">RAG</span>
                             </button>
 
-                            {/* Web Search Master Toggle */}
+                            {/* Web Search Master Toggle - Compact on Mobile */}
                             <button
                                 onClick={() => setWebSearch(!webSearch)}
                                 className={`
-                                    group relative flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 backdrop-blur-md cursor-pointer
+                                    group relative flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border transition-all duration-300 backdrop-blur-md cursor-pointer
                                     ${webSearch
                                         ? 'bg-blue-500/20 border-blue-500/30 text-blue-500 dark:text-blue-400 shadow-blue-500/10'
                                         : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10'}
                                 `}
                             >
-                                <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${webSearch ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'}`}></div>
-                                <span className="text-xs font-bold tracking-wide">WEB {webSearch ? 'ON' : 'OFF'}</span>
+                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${webSearch ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                <span className="text-[10px] md:text-xs font-bold tracking-wide">WEB</span>
                             </button>
 
                             {mounted && (
@@ -367,15 +391,15 @@ export default function ChatPage() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                    className="w-10 h-10 transition-all hover:scale-110 text-foreground/70 hover:text-foreground"
+                                    className="hidden md:flex w-10 h-10 transition-all hover:scale-110 text-foreground/70 hover:text-foreground"
                                 >
                                     {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-indigo-300" />}
                                 </Button>
                             )}
 
-                            {/* File Indicator (Desktop) - Optional placement in header or near input */}
+                            {/* File Indicator (Desktop) */}
                             {uploadedFile && (
-                                <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full animate-in fade-in zoom-in duration-300">
+                                <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full animate-in fade-in zoom-in duration-300">
                                     <FileText className="w-3.5 h-3.5 text-blue-500" />
                                     <span className="text-xs font-medium text-blue-600 dark:text-blue-400 max-w-[150px] truncate">
                                         {uploadedFile.name}
@@ -395,12 +419,26 @@ export default function ChatPage() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="w-10 h-10 transition-all hover:scale-110 text-foreground/70 hover:text-foreground"
+                                        className="w-8 h-8 md:w-10 md:h-10 transition-all hover:scale-110 text-foreground/70 hover:text-foreground"
                                     >
-                                        <User className="w-5 h-5" />
+                                        <User className="w-4 h-4 md:w-5 md:h-5" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-48 mt-2 mr-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-white/20 shadow-xl rounded-xl p-2" side="bottom" align="end">
+                                    {/* Mobile Theme Toggle inside Dropdown */}
+                                    <div className="md:hidden px-2 py-2 flex items-center justify-between">
+                                        <span className="text-sm font-medium">Theme</span>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => { e.preventDefault(); setTheme(theme === 'dark' ? 'light' : 'dark'); }}
+                                            className="w-8 h-8"
+                                        >
+                                            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-300" />}
+                                        </Button>
+                                    </div>
+                                    <DropdownMenuSeparator className="bg-white/20 md:hidden" />
+
                                     {isAuthenticated ? (
                                         <>
                                             <DropdownMenuItem
@@ -414,7 +452,7 @@ export default function ChatPage() {
                                             <DropdownMenuItem
                                                 onClick={async () => {
                                                     await dispatch(logoutUser());
-                                                    router.push('/login');
+                                                    router.replace('/login');
                                                 }}
                                                 className="cursor-pointer rounded-lg py-2.5 dark:text-white text-red-600 hover:text-red-700 dark:hover:text-red-300"
                                             >
@@ -447,15 +485,15 @@ export default function ChatPage() {
                     </header>
 
                     {/* Chat Area */}
-                    <main className="flex-1 flex flex-col relative overflow-hidden rounded-[40px] mx-2 mb-2 border border-white/20 dark:border-white/5 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20">
+                    <main className="flex-1 flex flex-col relative overflow-hidden rounded-[20px] md:rounded-[40px] mx-2 mb-2 border border-white/20 dark:border-white/5 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20">
 
                         {/* Messages */}
-                        <ScrollArea className="flex-1 px-4 md:px-0 scroll-smooth">
-                            <div className="w-full max-w-[1600px] mx-auto space-y-8 py-8 pb-64">
+                        <ScrollArea className="flex-1 px-2 md:px-0 scroll-smooth">
+                            <div className="w-full max-w-[1600px] mx-auto space-y-6 md:space-y-8 py-4 md:py-8 pb-32 md:pb-64">
                                 {isFetchingMessages ? (
                                     <div className="h-[50vh] flex flex-col items-center justify-center animate-in fade-in duration-500">
                                         <div className="flex items-center gap-3">
-                                            <span className="text-lg font-bold bg-gradient-to-r from-black via-gray-500 to-black dark:from-white dark:via-gray-400 dark:to-white bg-clip-text text-transparent animate-pulse tracking-wide">
+                                            <span className="text-base md:text-lg font-bold bg-gradient-to-r from-black via-gray-500 to-black dark:from-white dark:via-gray-400 dark:to-white bg-clip-text text-transparent animate-pulse tracking-wide">
                                                 Loading Messages...
                                             </span>
                                         </div>
@@ -463,22 +501,22 @@ export default function ChatPage() {
                                 ) : (
                                     <>
                                         {messages.length === 0 && (
-                                            <div className="h-[50vh] flex flex-col items-center justify-center text-muted-foreground/60 animate-in fade-in zoom-in duration-700">
-                                                <div className="w-24 h-24 rounded-[32px] bg-linear-to-br from-white/10 to-transparent dark:from-white/5 dark:to-white/5 dark:bg-white/5 backdrop-blur-2xl flex items-center justify-center mb-8 shadow-xl border border-white/10 ring-1 ring-white/5 group hover:scale-105 transition-all duration-500">
-                                                    <Search className="w-10 h-10 opacity-40 dark:opacity-60 group-hover:opacity-60 dark:group-hover:opacity-80 transition-opacity duration-300" />
+                                            <div className="h-[40vh] md:h-[50vh] flex flex-col items-center justify-center text-muted-foreground/60 animate-in fade-in zoom-in duration-700 px-4">
+                                                <div className="w-16 h-16 md:w-24 md:h-24 rounded-[32px] bg-linear-to-br from-white/10 to-transparent dark:from-white/5 dark:to-white/5 dark:bg-white/5 backdrop-blur-2xl flex items-center justify-center mb-6 md:mb-8 shadow-xl border border-white/10 ring-1 ring-white/5 group hover:scale-105 transition-all duration-500">
+                                                    <Search className="w-8 h-8 md:w-10 md:h-10 opacity-40 dark:opacity-60 group-hover:opacity-60 dark:group-hover:opacity-80 transition-opacity duration-300" />
                                                 </div>
-                                                <h2 className="text-3xl font-semibold text-foreground/80 dark:text-white mb-3 tracking-tight">Ready to research?</h2>
-                                                <p className="text-lg text-muted-foreground/50 dark:text-white/70 max-w-md text-center">
+                                                <h2 className="text-2xl md:text-3xl font-semibold text-foreground/80 dark:text-white mb-2 md:mb-3 tracking-tight text-center">Ready to research?</h2>
+                                                <p className="text-base md:text-lg text-muted-foreground/50 dark:text-white/70 max-w-md text-center">
                                                     Toggle RAG or Web Search to enhance your answers.
                                                 </p>
                                             </div>
                                         )}
 
                                         {messages.map((msg, i) => (
-                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-4`}>
-                                                <div className={`text-base md:text-lg leading-relaxed tracking-wide ${msg.role === 'user'
-                                                    ? 'max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[24px] rounded-br-sm px-6 py-4 shadow-lg'
-                                                    : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-2 py-2'
+                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-2 md:px-4`}>
+                                                <div className={`text-sm md:text-base lg:text-lg leading-relaxed tracking-wide ${msg.role === 'user'
+                                                    ? 'max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[20px] md:rounded-[24px] rounded-br-sm px-4 md:px-6 py-3 md:py-4 shadow-lg'
+                                                    : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-1 md:px-2 py-1 md:py-2'
                                                     }`}>
                                                     <MessageContent content={msg.content} />
                                                 </div>
@@ -489,16 +527,16 @@ export default function ChatPage() {
 
                                 {/* Thinking Gradient Loader */}
                                 {isLoading && (
-                                    <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-4 mt-2">
-                                        <div className="relative overflow-hidden rounded-[24px] rounded-tl-none px-6 py-4 bg-white/5 border border-black/5 dark:border-white/5 w-fit shadow-lg backdrop-blur-md">
+                                    <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-2 md:px-4 mt-2">
+                                        <div className="relative overflow-hidden rounded-[20px] md:rounded-[24px] rounded-tl-none px-4 md:px-6 py-3 md:py-4 bg-white/5 border border-black/5 dark:border-white/5 w-fit shadow-lg backdrop-blur-md">
                                             <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/10 to-black/5 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-pulse"></div>
-                                            <div className="relative flex items-center gap-3">
-                                                <div className="flex gap-1.5">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_0ms]"></div>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_200ms]"></div>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_400ms]"></div>
+                                            <div className="relative flex items-center gap-2 md:gap-3">
+                                                <div className="flex gap-1 md:gap-1.5">
+                                                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_0ms]"></div>
+                                                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_200ms]"></div>
+                                                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_400ms]"></div>
                                                 </div>
-                                                <span className="text-sm font-semibold text-black/70 dark:text-white/70 tracking-wide animate-pulse">
+                                                <span className="text-xs md:text-sm font-semibold text-black/70 dark:text-white/70 tracking-wide animate-pulse">
                                                     AI is thinking...
                                                 </span>
                                             </div>
@@ -512,20 +550,20 @@ export default function ChatPage() {
                         </ScrollArea>
 
                         {/* Input Area */}
-                        <div className="absolute bottom-6 left-0 right-0 px-4 md:px-6 flex justify-center z-20 pointer-events-none">
+                        <div className="absolute bottom-4 md:bottom-6 left-0 right-0 px-2 md:px-6 flex justify-center z-20 pointer-events-none">
                             <div className="w-full max-w-[1600px] relative group pointer-events-auto">
 
-                                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-[35px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-[30px] md:rounded-[35px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
-                                <div className="relative z-10 flex flex-col bg-white/40 dark:bg-neutral-900/40 backdrop-blur-[60px] saturate-150 border border-white/40 dark:border-white/10 rounded-[35px] shadow-2xl transition-all duration-300 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)]">
+                                <div className="relative z-10 flex flex-col bg-white/40 dark:bg-neutral-900/40 backdrop-blur-[60px] saturate-150 border border-white/40 dark:border-white/10 rounded-[30px] md:rounded-[35px] shadow-2xl transition-all duration-300 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)]">
 
                                     {/* Uploaded File Indicator (Inside Input Area for visibility) */}
                                     {uploadedFile && (
-                                        <div className="absolute -top-10 left-4 flex items-center gap-2 px-3 py-1.5 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-full shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-300 z-10">
-                                            <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                        <div className="absolute -top-8 md:-top-10 left-4 flex items-center gap-2 px-3 py-1.5 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-full shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-300 z-10 max-w-[90%]">
+                                            <div className="w-5 h-5 shrink-0 rounded-full bg-blue-500/20 flex items-center justify-center">
                                                 <FileText className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                                             </div>
-                                            <span className="text-xs font-medium text-foreground/80 max-w-[200px] truncate">
+                                            <span className="text-xs font-medium text-foreground/80 truncate">
                                                 {uploadedFile.name}
                                             </span>
                                             <button
@@ -537,26 +575,26 @@ export default function ChatPage() {
                                         </div>
                                     )}
 
-                                    <div className="w-full px-2 pt-2">
+                                    <div className="w-full px-1 md:px-2 pt-1 md:pt-2">
                                         <Input
                                             value={input}
                                             onChange={(e) => setInput(e.target.value)}
                                             placeholder={ragEnabled ? "Ask RAG Knowledge..." : webSearch ? "Search the Web..." : "Ask anything..."}
-                                            className="w-full bg-transparent border-none h-[50px] px-4 text-lg text-foreground dark:text-white placeholder:text-muted-foreground/50 dark:placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium tracking-normal"
+                                            className="w-full bg-transparent border-none h-[44px] md:h-[50px] px-4 text-base md:text-lg text-foreground dark:text-white placeholder:text-muted-foreground/50 dark:placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium tracking-normal"
                                             onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
                                         />
                                     </div>
 
-                                    <div className="flex items-center justify-between px-3 pb-3 pt-1">
+                                    <div className="flex items-center justify-between px-2 md:px-3 pb-2 md:pb-3 pt-1">
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 md:gap-2">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => dispatch(setUploadModalOpen(true))}
-                                                className="h-9 w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5 active:scale-95"
+                                                className="h-8 w-8 md:h-9 md:w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5 active:scale-95"
                                             >
-                                                <Plus className="w-5 h-5 stroke-[2.5px]" />
+                                                <Plus className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5px]" />
                                             </Button>
 
                                             <DropdownMenu>
@@ -564,9 +602,9 @@ export default function ChatPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-9 w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5"
+                                                        className="h-8 w-8 md:h-9 md:w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5"
                                                     >
-                                                        <Wrench className="w-4 h-4 stroke-[2.5px]" />
+                                                        <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 stroke-[2.5px]" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent className="w-56 mb-4 ml-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-white/20 shadow-xl rounded-xl p-2" side="top" align="start">
@@ -583,18 +621,23 @@ export default function ChatPage() {
                                             </DropdownMenu>
                                         </div>
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 md:gap-2">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
                                                         variant="ghost"
-                                                        className="h-8 px-3 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-colors border border-black/5 dark:border-white/5 text-xs font-medium flex items-center gap-1.5"
+                                                        className="h-7 md:h-8 px-2 md:px-3 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-colors border border-black/5 dark:border-white/5 text-[10px] md:text-xs font-medium flex items-center gap-1.5"
                                                     >
-                                                        {model === 'auto' ? 'Auto' :
-                                                            model === 'arcee-ai/trinity-large-preview:free' ? 'Arce-Large' :
-                                                                model === 'upstage/solar-pro-3:free' ? 'Solar-Pro-3' :
-                                                                    model === 'liquid/lfm-2.5-1.2b-thinking:free' ? 'LFM Thinking' :
-                                                                        model}
+                                                        <span className="hidden sm:inline">
+                                                            {model === 'auto' ? 'Auto' :
+                                                                model === 'arcee-ai/trinity-large-preview:free' ? 'Arce-Large' :
+                                                                    model === 'upstage/solar-pro-3:free' ? 'Solar-Pro-3' :
+                                                                        model === 'liquid/lfm-2.5-1.2b-thinking:free' ? 'LFM Thinking' :
+                                                                            model}
+                                                        </span>
+                                                        <span className="sm:hidden">
+                                                            {model === 'auto' ? 'Auto' : 'Model'}
+                                                        </span>
                                                         <ChevronDown className="w-3 h-3 opacity-50" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
@@ -620,12 +663,12 @@ export default function ChatPage() {
                                                 onClick={isLoading ? handleStop : handleSend}
                                                 size="icon"
                                                 disabled={!input.trim() && !isLoading}
-                                                className={`h-10 w-10 rounded-full bg-white/60 dark:bg-white/20 hover:bg-white/80 dark:hover:bg-white/30 backdrop-blur-xl border border-white/40 dark:border-white/30 text-indigo-600 dark:text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isLoading ? 'animate-pulse' : ''}`}
+                                                className={`h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/60 dark:bg-white/20 hover:bg-white/80 dark:hover:bg-white/30 backdrop-blur-xl border border-white/40 dark:border-white/30 text-indigo-600 dark:text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isLoading ? 'animate-pulse' : ''}`}
                                             >
                                                 {isLoading ? (
-                                                    <Square className="w-4 h-4 fill-current stroke-[3px]" />
+                                                    <Square className="w-3.5 h-3.5 md:w-4 md:h-4 fill-current stroke-[3px]" />
                                                 ) : (
-                                                    <ArrowUp className="w-5 h-5 stroke-[3px]" />
+                                                    <ArrowUp className="w-4 h-4 md:w-5 md:h-5 stroke-[3px]" />
                                                 )}
                                             </Button>
                                         </div>
