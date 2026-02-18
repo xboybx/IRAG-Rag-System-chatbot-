@@ -48,13 +48,19 @@ const User_Register = async (req, res) => {
             })
         }
 
-        res.cookie("token", refreshToken, {
+        // Set Refresh Token as HttpOnly Cookie
+        res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "None",
-            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        })
+        });
+
+        // Set Access Token as HttpOnly Cookie
+        res.cookie("token", accessToken, {
+            httpOnly: true, // Should be true, accessible only by server
+            secure: true,
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
 
         return res.status(201).json({
             message: "User Registered Successfully",
@@ -109,13 +115,19 @@ const User_Login = async (req, res) => {
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
 
-        res.cookie("token", refreshToken, {
+        // Set Refresh Token as HttpOnly Cookie
+        res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "None",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        })
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        // Set Access Token as HttpOnly Cookie
+        res.cookie("token", accessToken, {
+            httpOnly: true,
+            secure: true,
+            maxAge: 15 * 60 * 1000, // 15 mins
+        });
 
         return res.status(201).json({
             message: "User Logged In Successfully",
@@ -145,8 +157,15 @@ const User_Logout = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "None",
-            path: "/"
-        })
+
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+
+        });
 
         return res.status(201).json({
             message: "User Logged Out Successfully"
@@ -195,16 +214,16 @@ The Refresh Token (stored securely in a cookie) is used to get a new Access Toke
 const User_Refresh = async (req, res) => {
     try {
         // 1. Get the refresh token from cookies
-        const { token } = req.cookies;
+        const refreshTokenCookie = req.cookies.refreshToken || req.cookies.token; // Fallback for transition
 
-        if (!token) {
+        if (!refreshTokenCookie) {
             return res.status(400).json({
                 message: "Refresh {Long Lived Token} not found"
             })
         }
 
         //verify the stored refreshToken (Long Lived Token) and chek with its user 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(refreshTokenCookie, process.env.JWT_SECRET);
 
         const user = await UserModel.findById(decoded.id);
         //if the user exits with that token then it is valid and we can create
@@ -216,22 +235,28 @@ const User_Refresh = async (req, res) => {
             })
         }
 
-        const refreshToken = user.generateRefreshToken();
-        const accessToken = user.generateAccessToken();
+        const newRefreshToken = user.generateRefreshToken();
+        const newAccessToken = user.generateAccessToken();
 
-        res.cookie("token", refreshToken, {
+        // 1. Refresh Token
+        res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: "None",
-            path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        })
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        // 2. Access Token
+        res.cookie("token", newAccessToken, {
+            httpOnly: true,
+            secure: true,
+            maxAge: 15 * 60 * 1000, // 15 mins
+        });
 
         return res.status(201).json({
-            message: "User Refreshed Successfully and generated new  Acess-Token (short-lived-Token) with the help of old Refresh-Token (Long Lived-Token) and also generated new Refresh-Token (Long Lived-Token)",
+            message: "User Refreshed Successfully",
             user,
-            "short_lived_Token": accessToken,
-            "long_lived_Token": refreshToken
+            "short_lived_Token": newAccessToken,
+            "long_lived_Token": newRefreshToken
         })
 
 

@@ -1,11 +1,14 @@
 import axios from 'axios';
 import { setToken, logoutUser } from './Features/UserSlice';
 
+
+
 const axiosInstance = axios.create({
     baseURL: '/api', // Proxy through Next.js
     withCredentials: true, // Important for cookies (Refresh Token)
     headers: {
         'Content-Type': 'application/json',
+
     },
     timeout: 20000, // 20 seconds timeout (increased for slow cold starts)
 });

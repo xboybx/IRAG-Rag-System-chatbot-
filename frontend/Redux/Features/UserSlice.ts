@@ -195,7 +195,7 @@ const userSlice = createSlice({
     },
 });
 
-// Fetch Current User (Directly from /me)
+// Fetch Current User (Directly from /me) //For Profile
 export const fetchCurrentUser = createAsyncThunk(
     "auth/fetchCurrentUser",
     async (_, { rejectWithValue }) => {
