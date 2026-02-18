@@ -139,20 +139,43 @@ export default function AppLoader() {
                     {[2, 1, 0].map((offset) => {
                         const cardIndex = getCardIndex(offset);
                         const card = featureCards[cardIndex];
-                        const pos = STACK_POSITIONS[offset];
                         const isFront = offset === 0;
+                        const isMiddle = offset === 1;
+                        const isBack = offset === 2;
+
+                        // During swipe: front card goes to back, middle goes to front, back goes to middle
+                        let y: number, scale: number, opacity: number, zIndex: number;
+
+                        if (swiping) {
+                            if (isFront) {
+                                // Front → goes to back
+                                y = 24; scale = 0.90; opacity = 0; zIndex = 5;
+                            } else if (isMiddle) {
+                                // Middle → becomes front
+                                y = 0; scale = 1; opacity = 1; zIndex = 30;
+                            } else {
+                                // Back → becomes middle
+                                y = 12; scale = 0.95; opacity = 0.7; zIndex = 20;
+                            }
+                        } else {
+                            if (isFront) {
+                                y = 0; scale = 1; opacity = 1; zIndex = 30;
+                            } else if (isMiddle) {
+                                y = 12; scale = 0.95; opacity = 0.7; zIndex = 20;
+                            } else {
+                                y = 24; scale = 0.90; opacity = 0.4; zIndex = 10;
+                            }
+                        }
 
                         return (
                             <div
                                 key={`${activeIndex}-${offset}`}
                                 className="absolute inset-x-0 top-0"
                                 style={{
-                                    zIndex: pos.zIndex,
-                                    transform: isFront && swiping
-                                        ? `translateX(-120%) translateY(${pos.y}px) scale(${pos.scale}) rotate(-8deg)`
-                                        : `translateY(${pos.y}px) scale(${pos.scale})`,
-                                    opacity: isFront && swiping ? 0 : pos.opacity,
-                                    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    zIndex,
+                                    transform: `translateY(${y}px) scale(${scale})`,
+                                    opacity,
+                                    transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                                 }}
                             >
                                 <CardContent card={card} />
