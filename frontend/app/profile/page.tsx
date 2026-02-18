@@ -10,7 +10,6 @@ import { fetchCurrentUser, logoutUser } from '@/Redux/Features/UserSlice';
 
 export default function ProfilePage() {
     const router = useRouter();
-    const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const dispatch = useAppDispatch();
     const { user, isLoading } = useAppSelector((state) => state.auth);
@@ -45,7 +44,7 @@ export default function ProfilePage() {
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
-                        backgroundImage: 'url(/bg2.jpg)',
+                        backgroundImage: 'url(https://ik.imagekit.io/mtkm3escy/rag-system/Rag_BG_image/bg2.jpg)',
                     }}
                 ></div>
             </div>

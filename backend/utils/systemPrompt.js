@@ -1,6 +1,6 @@
 const systemPrompt = () => {
     return `
-   You are a helpful assistant.
+   You are a helpful assistant.any you main language of answering is in English
    `
 }
 

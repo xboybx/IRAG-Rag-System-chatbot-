@@ -3,15 +3,12 @@
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Menu } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/Redux/hooks';
 
 export default function Home() {
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-
   useEffect(() => {
     setMounted(true);
 
@@ -35,7 +32,7 @@ export default function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm"
           style={{
-            backgroundImage: 'url(/bg2.jpg)',
+            backgroundImage: 'url(https://ik.imagekit.io/mtkm3escy/rag-system/Rag_BG_image/bg2.jpg)',
           }}
         ></div>
       </div>

@@ -16,6 +16,7 @@ interface ChatState {
     currentConversationId: string | null;
     isUploading: boolean;
     uploadedFile: { name: string, id: string } | null;
+    isFetchingMessages: boolean;
 }
 
 const initialState: ChatState = {
@@ -27,6 +28,7 @@ const initialState: ChatState = {
     currentConversationId: null,
     isUploading: false,
     uploadedFile: null,
+    isFetchingMessages: false,
 }
 
 // Async Thunk for sending messages
@@ -134,7 +136,7 @@ const chatSlice = createSlice({
         clearUploadedFile: (state) => {
             state.uploadedFile = null;
         },
-        updateLastMessageContent: (state, action: PayloadAction<string>) => {
+        updateLastMessageContent: (state, action: PayloadAction<string>) => {//for updating last message content and scroll behaviour
             const lastMsgIndex = state.messages.length - 1;
             if (lastMsgIndex >= 0) {
                 state.messages[lastMsgIndex].content = action.payload;
@@ -171,13 +173,13 @@ const chatSlice = createSlice({
             })
             // Fetch Messages
             .addCase(fetchMessages.pending, (state) => {
-                state.isLoading = true;
+                state.isFetchingMessages = true;
                 state.error = "";
                 state.isError = false;
                 state.messages = []; // Clear current messages while loading
             })
             .addCase(fetchMessages.fulfilled, (state, action) => {
-                state.isLoading = false;
+                state.isFetchingMessages = false;
                 if (action.payload.data) {
                     state.messages = action.payload.data.map((msg: any) => ({
                         role: msg.role,
@@ -186,7 +188,7 @@ const chatSlice = createSlice({
                 }
             })
             .addCase(fetchMessages.rejected, (state, action) => {
-                state.isLoading = false;
+                state.isFetchingMessages = false;
                 state.isError = true;
                 state.error = (action.payload as any)?.message || "Failed to fetch messages";
             })

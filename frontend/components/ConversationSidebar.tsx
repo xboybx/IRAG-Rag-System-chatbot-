@@ -1,22 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Plus, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/Redux/Store';
 import { clearMessages, setConversationId } from '@/Redux/Features/Chatslice';
 import { fetchConversations, deleteConversationThunk, addConversation } from '@/Redux/Features/ConversationHistorySlice';
 import { useEffect } from 'react';
 import axiosInstance from '@/Redux/axiosInstance';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
-
-interface Conversation {
-    id: string;
-    title: string;
-    timestamp: string;
-}
 
 interface ConversationSidebarProps {
     isOpen: boolean;

@@ -44,7 +44,7 @@ export default function RegisterPage() {
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm"
                     style={{
-                        backgroundImage: 'url(/bg2.jpg)',
+                        backgroundImage: 'url(https://ik.imagekit.io/mtkm3escy/rag-system/Rag_BG_image/bg2.jpg)',
                     }}
                 ></div>
             </div>

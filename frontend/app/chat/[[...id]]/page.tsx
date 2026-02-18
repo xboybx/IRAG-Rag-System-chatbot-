@@ -4,24 +4,22 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
-import { RootState } from '@/Redux/Store';
 import { addMessage, setLoading, setModel, setConversationId, fetchMessages, clearMessages, uploadFile, clearUploadedFile, updateLastMessageContent } from '@/Redux/Features/Chatslice';
 import { fetchConversations, createConversation } from '@/Redux/Features/ConversationHistorySlice';
-import { toggleSidebar, setSidebarOpen, toggleUploadModal, setUploadModalOpen } from '@/Redux/Features/UIslice';
+import { toggleSidebar, setUploadModalOpen } from '@/Redux/Features/UIslice';
 import { logoutUser } from '@/Redux/Features/UserSlice';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ConversationSidebar from "@/components/ConversationSidebar";
 import {
-    Send, Sparkles, Search, Moon, Sun, ArrowUp, Plus, Globe,
-    Bot, Cpu, Zap, ChevronDown, Check, Database, Layers, Paperclip, Wrench,
-    FileText, Image as ImageIcon, Link2, UploadCloud, X, Menu, User, LogOut, Square
+    Search, Moon, Sun, ArrowUp, Plus, Globe,
+    ChevronDown, Wrench,
+    FileText, Image as UploadCloud, X, Menu, User, LogOut, Square
 } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -30,7 +28,6 @@ import {
     DropdownMenuRadioItem,
     DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
-import { sendMessage } from '@/Redux/Features/Chatslice';
 import MessageContent from '@/components/MessageContent';
 
 export default function ChatPage() {
@@ -43,7 +40,7 @@ export default function ChatPage() {
 
     // Redux Hooks
     const dispatch = useAppDispatch();
-    const { messages, isLoading, model, currentConversationId, isUploading, uploadedFile } = useAppSelector((state) => state.chat);
+    const { messages, isLoading, model, currentConversationId, isUploading, uploadedFile, isFetchingMessages } = useAppSelector((state) => state.chat);
     const { isSidebarOpen, isUploadModalOpen } = useAppSelector((state) => state.ui);
     const { isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -157,6 +154,8 @@ export default function ChatPage() {
                 window.history.pushState({}, '', `/chat/${newConversationId}`); // Update URL silently
             }
 
+
+            //Response Streaming
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
             let accumulatedResponse = "";
@@ -247,7 +246,7 @@ export default function ChatPage() {
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
-                        backgroundImage: 'url(/bg2.jpg)',
+                        backgroundImage: 'url(https://ik.imagekit.io/mtkm3escy/rag-system/Rag_BG_image/bg2.jpg)',
                     }}
                 ></div>
             </div>
@@ -453,41 +452,53 @@ export default function ChatPage() {
                         {/* Messages */}
                         <ScrollArea className="flex-1 px-4 md:px-0 scroll-smooth">
                             <div className="w-full max-w-[1600px] mx-auto space-y-8 py-8 pb-64">
-                                {messages.length === 0 && (
-                                    <div className="h-[50vh] flex flex-col items-center justify-center text-muted-foreground/60 animate-in fade-in zoom-in duration-700">
-                                        <div className="w-24 h-24 rounded-[32px] bg-linear-to-br from-white/10 to-transparent dark:from-white/5 dark:to-white/5 dark:bg-white/5 backdrop-blur-2xl flex items-center justify-center mb-8 shadow-xl border border-white/10 ring-1 ring-white/5 group hover:scale-105 transition-all duration-500">
-                                            <Search className="w-10 h-10 opacity-40 dark:opacity-60 group-hover:opacity-60 dark:group-hover:opacity-80 transition-opacity duration-300" />
+                                {isFetchingMessages ? (
+                                    <div className="h-[50vh] flex flex-col items-center justify-center animate-in fade-in duration-500">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-lg font-bold bg-gradient-to-r from-black via-gray-500 to-black dark:from-white dark:via-gray-400 dark:to-white bg-clip-text text-transparent animate-pulse tracking-wide">
+                                                Loading Messages...
+                                            </span>
                                         </div>
-                                        <h2 className="text-3xl font-semibold text-foreground/80 dark:text-white mb-3 tracking-tight">Ready to research?</h2>
-                                        <p className="text-lg text-muted-foreground/50 dark:text-white/70 max-w-md text-center">
-                                            Toggle RAG or Web Search to enhance your answers.
-                                        </p>
                                     </div>
-                                )}
+                                ) : (
+                                    <>
+                                        {messages.length === 0 && (
+                                            <div className="h-[50vh] flex flex-col items-center justify-center text-muted-foreground/60 animate-in fade-in zoom-in duration-700">
+                                                <div className="w-24 h-24 rounded-[32px] bg-linear-to-br from-white/10 to-transparent dark:from-white/5 dark:to-white/5 dark:bg-white/5 backdrop-blur-2xl flex items-center justify-center mb-8 shadow-xl border border-white/10 ring-1 ring-white/5 group hover:scale-105 transition-all duration-500">
+                                                    <Search className="w-10 h-10 opacity-40 dark:opacity-60 group-hover:opacity-60 dark:group-hover:opacity-80 transition-opacity duration-300" />
+                                                </div>
+                                                <h2 className="text-3xl font-semibold text-foreground/80 dark:text-white mb-3 tracking-tight">Ready to research?</h2>
+                                                <p className="text-lg text-muted-foreground/50 dark:text-white/70 max-w-md text-center">
+                                                    Toggle RAG or Web Search to enhance your answers.
+                                                </p>
+                                            </div>
+                                        )}
 
-                                {messages.map((msg, i) => (
-                                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-4`}>
-                                        <div className={`text-base md:text-lg leading-relaxed tracking-wide ${msg.role === 'user'
-                                            ? 'max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[24px] rounded-br-sm px-6 py-4 shadow-lg'
-                                            : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-2 py-2'
-                                            }`}>
-                                            <MessageContent content={msg.content} />
-                                        </div>
-                                    </div>
-                                ))}
+                                        {messages.map((msg, i) => (
+                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-4`}>
+                                                <div className={`text-base md:text-lg leading-relaxed tracking-wide ${msg.role === 'user'
+                                                    ? 'max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[24px] rounded-br-sm px-6 py-4 shadow-lg'
+                                                    : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-2 py-2'
+                                                    }`}>
+                                                    <MessageContent content={msg.content} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
 
                                 {/* Thinking Gradient Loader */}
                                 {isLoading && (
                                     <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-4 mt-2">
-                                        <div className="relative overflow-hidden rounded-[24px] rounded-tl-none px-6 py-4 bg-white/5 border border-white/10 w-fit shadow-lg shadow-indigo-500/5">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+                                        <div className="relative overflow-hidden rounded-[24px] rounded-tl-none px-6 py-4 bg-white/5 border border-black/5 dark:border-white/5 w-fit shadow-lg backdrop-blur-md">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/10 to-black/5 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-pulse"></div>
                                             <div className="relative flex items-center gap-3">
-                                                <div className="flex gap-1">
-                                                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-[bounce_1s_infinite_0ms]"></div>
-                                                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-[bounce_1s_infinite_200ms]"></div>
-                                                    <div className="w-2 h-2 rounded-full bg-pink-400 animate-[bounce_1s_infinite_400ms]"></div>
+                                                <div className="flex gap-1.5">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_0ms]"></div>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_200ms]"></div>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_400ms]"></div>
                                                 </div>
-                                                <span className="text-sm font-semibold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent animate-pulse tracking-wide">
+                                                <span className="text-sm font-semibold text-black/70 dark:text-white/70 tracking-wide animate-pulse">
                                                     AI is thinking...
                                                 </span>
                                             </div>

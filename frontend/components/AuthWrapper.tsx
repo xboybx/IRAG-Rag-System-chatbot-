@@ -56,8 +56,8 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
     if (isChecking || (isLoading && !user)) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+            <div className="h-screen w-screen flex items-center justify-center bg-transparent">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
     }
