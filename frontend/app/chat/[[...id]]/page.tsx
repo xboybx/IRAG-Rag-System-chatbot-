@@ -123,8 +123,8 @@ export default function ChatPage() {
 
         try {
             const urlId = currentConversationId || 'new';
-            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-            const response = await fetch(`${API_URL}/ai/chat/${urlId}`, { // Direct fetch for streaming
+            // Use proxy path /api which Next.js rewrites to backend
+            const response = await fetch(`/api/ai/chat/${urlId}`, { // Direct fetch for streaming
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

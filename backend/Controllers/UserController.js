@@ -48,7 +48,13 @@ const User_Register = async (req, res) => {
             })
         }
 
-        res.cookie("token", refreshToken)
+        res.cookie("token", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        })
 
         return res.status(201).json({
             message: "User Registered Successfully",
@@ -103,7 +109,13 @@ const User_Login = async (req, res) => {
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
 
-        res.cookie("token", refreshToken)
+        res.cookie("token", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        })
 
         return res.status(201).json({
             message: "User Logged In Successfully",
@@ -129,7 +141,12 @@ const User_Login = async (req, res) => {
 const User_Logout = async (req, res) => {
     try {
 
-        res.clearCookie("token")
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            path: "/"
+        })
 
         return res.status(201).json({
             message: "User Logged Out Successfully"
@@ -202,7 +219,13 @@ const User_Refresh = async (req, res) => {
         const refreshToken = user.generateRefreshToken();
         const accessToken = user.generateAccessToken();
 
-        res.cookie("token", refreshToken)
+        res.cookie("token", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        })
 
         return res.status(201).json({
             message: "User Refreshed Successfully and generated new  Acess-Token (short-lived-Token) with the help of old Refresh-Token (Long Lived-Token) and also generated new Refresh-Token (Long Lived-Token)",

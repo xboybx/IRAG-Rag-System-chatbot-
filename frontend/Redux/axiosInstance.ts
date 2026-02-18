@@ -1,15 +1,13 @@
 import axios from 'axios';
 import { setToken, logoutUser } from './Features/UserSlice';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-
 const axiosInstance = axios.create({
-    baseURL: API_URL,
+    baseURL: '/api', // Proxy through Next.js
     withCredentials: true, // Important for cookies (Refresh Token)
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 10000, // 10 seconds timeout
+    timeout: 20000, // 20 seconds timeout (increased for slow cold starts)
 });
 
 export const setupInterceptors = (store: any) => {
@@ -40,7 +38,7 @@ export const setupInterceptors = (store: any) => {
                 try {
                     // Attempt to refresh the token using the HttpOnly cookie
                     const refreshResponse = await axios.post(
-                        `${API_URL}/user/refresh`,
+                        `/api/user/refresh`,
                         {},
                         { withCredentials: true }
                     );
