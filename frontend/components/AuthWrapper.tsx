@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
 import { checkAuth } from '@/Redux/Features/UserSlice';
 import { useRouter, usePathname } from 'next/navigation';
@@ -10,29 +10,19 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
     const dispatch = useAppDispatch();
     const router = useRouter();
     const pathname = usePathname();
-    const { isAuthenticated, isLoading, user } = useAppSelector((state) => state.auth);
-    const [isChecking, setIsChecking] = useState(true);
+    const { isAuthenticated, isLoading, user, isCheckingAuth } = useAppSelector((state) => state.auth);
 
     useEffect(() => {
         const initAuth = async () => {
             if (!isAuthenticated && !user) {
-                try {
-                    await dispatch(checkAuth()).unwrap();
-                } catch (error) {
-                    // Suppress error logging for guests (no session found)
-                    if (error !== "No active session") {
-                        console.error("Auth check failed:", error);
-                    }
-                }
+                dispatch(checkAuth());
             }
-            setIsChecking(false);
         };
         initAuth();
     }, [dispatch, isAuthenticated, user]);
 
     useEffect(() => {
-        if (!isChecking) {
-            // Protected Routes
+        if (!isCheckingAuth) {
             // Protected Routes
             // We want /chat to be accessible, but specific actions (like sending) to be protected.
             // So we REMOVE '/chat' from here.
@@ -52,12 +42,12 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
                 router.push('/chat');
             }
         }
-    }, [isChecking, isAuthenticated, pathname, router]);
+    }, [isCheckingAuth, isAuthenticated, pathname, router]);
 
     // Don't block public pages enabling faster LCP (Largest Contentful Paint)
     // The auth check will happen in background and update UI when ready
     const publicRoutes = ['/', '/login', '/register'];
-    if (!publicRoutes.includes(pathname || '') && (isChecking || (isLoading && !user))) {
+    if (!publicRoutes.includes(pathname || '') && ((isCheckingAuth && !isAuthenticated) || (isLoading && !user))) {
         return <AppLoader />;
     }
 

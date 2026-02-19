@@ -14,6 +14,7 @@ interface AuthState {
     user: User | null;
     token: string | null; // Access Token (Short Lived)
     isAuthenticated: boolean;
+    isCheckingAuth: boolean; // New state for initial auth check
     isLoading: boolean;
     isError: boolean;
     errorMessage: string;
@@ -23,6 +24,7 @@ const initialState: AuthState = {
     user: null,
     token: null,
     isAuthenticated: false,
+    isCheckingAuth: true, // Start as true
     isLoading: false,
     isError: false,
     errorMessage: "",
@@ -161,10 +163,10 @@ const userSlice = createSlice({
 
         // Check Auth
         builder.addCase(checkAuth.pending, (state) => {
-            state.isLoading = true;
+            state.isCheckingAuth = true; // Use separate loading state
         });
         builder.addCase(checkAuth.fulfilled, (state, action) => {
-            state.isLoading = false;
+            state.isCheckingAuth = false;
             state.user = action.payload.user;
             if (action.payload.short_lived_Token) {
                 state.token = action.payload.short_lived_Token;
@@ -172,7 +174,7 @@ const userSlice = createSlice({
             state.isAuthenticated = true;
         });
         builder.addCase(checkAuth.rejected, (state) => {
-            state.isLoading = false;
+            state.isCheckingAuth = false;
             state.isAuthenticated = false;
             state.user = null;
             state.token = null;

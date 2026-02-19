@@ -506,7 +506,9 @@ export default function ChatPage() {
                                                     <Search className="w-8 h-8 md:w-10 md:h-10 opacity-40 dark:opacity-60 group-hover:opacity-60 dark:group-hover:opacity-80 transition-opacity duration-300" />
                                                 </div>
                                                 <h2 className="text-2xl md:text-3xl font-semibold text-foreground/80 dark:text-white mb-2 md:mb-3 tracking-tight text-center">Ready to research?</h2>
-                                                <p className="text-base md:text-lg text-muted-foreground/50 dark:text-white/70 max-w-md text-center">
+                                                <p className="text-base md:text-lg text-muted-foreground/60 dark:text-white/70 max-w-lg text-center leading-relaxed">
+                                                    IRAG is your AI research assistant. Use it like ChatGPT for normal chat, enable <b>Web Search</b> for live info, or upload documents to activate <b>RAG</b> for answering from your files.
+                                                    <br className="hidden md:block" />
                                                     Toggle RAG or Web Search to enhance your answers.
                                                 </p>
                                             </div>
@@ -674,11 +676,16 @@ export default function ChatPage() {
                                         </div>
                                     </div>
                                 </div>
+                                <div className="text-center mt-2">
+                                    <p className="text-[10px] md:text-xs text-muted-foreground/60 dark:text-white font-medium tracking-wide">
+                                        IRAG can make mistakes. Please check important info.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </main>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
