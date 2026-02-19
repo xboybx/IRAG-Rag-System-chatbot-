@@ -515,10 +515,10 @@ export default function ChatPage() {
                                         )}
 
                                         {messages.map((msg, i) => (
-                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-2 md:px-4`}>
-                                                <div className={`text-sm md:text-base lg:text-lg leading-relaxed tracking-wide ${msg.role === 'user'
-                                                    ? 'max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[20px] md:rounded-[24px] rounded-br-sm px-4 md:px-6 py-3 md:py-4 shadow-lg'
-                                                    : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-1 md:px-2 py-1 md:py-2'
+                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mb-2 md:mb-0 max-w-full`}>
+                                                <div className={`text-sm md:text-base lg:text-lg leading-relaxed tracking-wide min-w-0 break-words overflow-x-auto max-w-full ${msg.role === 'user'
+                                                    ? 'max-w-[92%] sm:max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[18px] md:rounded-[24px] rounded-br-sm px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 shadow-md md:shadow-lg w-fit'
+                                                    : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-0 sm:px-1 md:px-2 py-1 md:py-2 mx-0 sm:mx-1 md:mx-0'
                                                     }`}>
                                                     <MessageContent content={msg.content} />
                                                 </div>
@@ -529,8 +529,8 @@ export default function ChatPage() {
 
                                 {/* Thinking Gradient Loader */}
                                 {isLoading && (
-                                    <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-2 md:px-4 mt-2">
-                                        <div className="relative overflow-hidden rounded-[20px] md:rounded-[24px] rounded-tl-none px-4 md:px-6 py-3 md:py-4 bg-white/5 border border-black/5 dark:border-white/5 w-fit shadow-lg backdrop-blur-md">
+                                    <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mt-2">
+                                        <div className="relative overflow-hidden rounded-[18px] md:rounded-[24px] rounded-tl-none px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 bg-white/5 border border-black/5 dark:border-white/5 w-fit shadow-lg backdrop-blur-md">
                                             <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/10 to-black/5 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-pulse"></div>
                                             <div className="relative flex items-center gap-2 md:gap-3">
                                                 <div className="flex gap-1 md:gap-1.5">
