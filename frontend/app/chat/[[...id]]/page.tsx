@@ -108,9 +108,9 @@ export default function ChatPage() {
 
         // 4. Prepare Payload
         let backendModelName = model;
-        if (model === "arcee-ai/trinity-large-preview:free") backendModelName = "Arce-Large";
-        else if (model === "upstage/solar-pro-3:free") backendModelName = "Solar-Pro-3";
-        else if (model === "liquid/lfm-2.5-1.2b-thinking:free") backendModelName = "LFM-2.5-1.2B-Thinking";
+        if (model === "Trinity Mini") backendModelName = "Trinity";
+        else if (model === "GLM 4.5 Air") backendModelName = "Z-Air";
+        else if (model === "Meta Llama 3.3 70B Instruct") backendModelName = "Meta Llama";
 
         // Create new AbortController
         if (abortControllerRef.current) {
@@ -632,9 +632,9 @@ export default function ChatPage() {
                                                     >
                                                         <span className="hidden sm:inline">
                                                             {model === 'auto' ? 'Auto' :
-                                                                model === 'arcee-ai/trinity-large-preview:free' ? 'Arce-Large' :
-                                                                    model === 'upstage/solar-pro-3:free' ? 'Solar-Pro-3' :
-                                                                        model === 'liquid/lfm-2.5-1.2b-thinking:free' ? 'LFM Thinking' :
+                                                                model === 'Trinity Mini' ? 'Trinity' :
+                                                                    model === 'GLM 4.5 Air' ? 'Z-Air' :
+                                                                        model === 'Meta Llama 3.3 70B Instruct' ? 'Meta Llama' :
                                                                             model}
                                                         </span>
                                                         <span className="sm:hidden">
@@ -648,14 +648,14 @@ export default function ChatPage() {
                                                         <DropdownMenuRadioItem value="auto" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
                                                             Auto (Smart Select)
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="arcee-ai/trinity-large-preview:free" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Arce-Large
+                                                        <DropdownMenuRadioItem value="Trinity Mini" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            Trinity Mini
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="upstage/solar-pro-3:free" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Solar-Pro-3
+                                                        <DropdownMenuRadioItem value="GLM 4.5 Air" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            GLM 4.5 Air
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="liquid/lfm-2.5-1.2b-thinking:free" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            LFM Thinking (1.2B)
+                                                        <DropdownMenuRadioItem value="Meta Llama 3.3 70B Instruct" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            Meta Llama 3.3 70B Instruct
                                                         </DropdownMenuRadioItem>
                                                     </DropdownMenuRadioGroup>
                                                 </DropdownMenuContent>

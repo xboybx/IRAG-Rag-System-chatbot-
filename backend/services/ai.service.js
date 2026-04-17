@@ -4,7 +4,7 @@ const { systemPrompt } = require("../utils/systemPrompt.js");
 
 //Open ai sdk from open Router
 const openai = new Openai({
-    baseURL: 'https://openrouter.ai/api/v1',
+    baseURL: 'https://api.clod.io/v1',
     apiKey: process.env.OPEN_ROUTER_API_KEY,
     defaultHeaders: {
         'HTTP-Referer': process.env.SITE_URL, // Optional. Site URL for rankings on openrouter.ai.
@@ -13,17 +13,32 @@ const openai = new Openai({
 });
 
 // Map of user-friendly names to OpenRouter Model IDs (when selected specific model)
+// const MODEL_MAPPING = {
+//    "Trinity Mini",
+//     "GLM 4.5 Air",
+//     "Meta Llama 3.3 70B Instruct"
+//     // Add more mappings as needed
+// };
+
 const MODEL_MAPPING = {
-    "Arce-Large": "arcee-ai/trinity-large-preview:free",
-    "Solar-Pro-3": "upstage/solar-pro-3:free",
-    "LFM-2.5-1.2B-Thinking": "liquid/lfm-2.5-1.2b-thinking:free"
+    "Trinity": "Trinity Mini",
+    "Z-Air": "GLM 4.5 Air",
+    "Meta Llama": "Meta Llama 3.3 70B Instruct"
     // Add more mappings as needed
 };
 
+// const AUTO_MODELS = [
+//     "upstage/solar-pro-3:free",
+//     "arcee-ai/trinity-large-preview:free",
+//     "liquid/lfm-2.5-1.2b-thinking:free"
+
+// ];
+
+/* Model names form app.clod */
 const AUTO_MODELS = [
-    "upstage/solar-pro-3:free",
-    "arcee-ai/trinity-large-preview:free",
-    "liquid/lfm-2.5-1.2b-thinking:free"
+    "Trinity Mini",
+    "GLM 4.5 Air",
+    "Meta Llama 3.3 70B Instruct"
 
 ];
 
