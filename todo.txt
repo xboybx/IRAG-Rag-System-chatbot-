@@ -71,3 +71,11 @@ Both use the same req.file.buffer that Multer gave us. This is the most efficien
 =====================================================================
 
 add web Tool calling feature auto and selected
+
+21/04/26
+-Fix the streaming response to have nice lieve steam on using
+--debug the the stating converstion error the ai message going to right side , i think we have to set the toke ai in headers
+-when new url is given for new chat and if the rag is off  , when the new id isgiven for that it againg refresh so the tag button also enables 
+-Zai ai failing to call the tools 
+-have a small query router for rag or use rag as the tool call -see best option as per our code
+-so if ay chat overpasses the 10 messages array ,forst time the ai does the summary from 11 th message ai summarizies the previosu summary again and again, wich can lose info - instead have evey time 10 linit messages from backend by totally removing the ai or comeup with any solution

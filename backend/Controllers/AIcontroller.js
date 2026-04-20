@@ -9,16 +9,15 @@ const { parseFile } = require("../utils/FileParser.js");
 const FileModel = require("../models/FileModel.js");
 const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
 const { generateEmbeddingForChunks } = require("../services/embedding.service.js");
-const { performWebSearch, shouldAutoSearch } = require("../services/webSearch.service.js");
 
 
 
 
 const chatController = async (req, res) => {
     try {
-        let { conversationId, message, selectedModel, history, useRag, useWebSearch } = req.body;
+        let { conversationId, message, selectedModel, history, useRag, useWebSearch, stream } = req.body;
         const CurrentUser = req.user.id;
-        const isStreaming = true; // Force streaming for now
+        const isStreaming = stream !== false;
 
         if (!CurrentUser) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -30,35 +29,44 @@ const chatController = async (req, res) => {
 
         // --- AUTO-CREATE CONVERSATION LOGIC ---
         // If conversationId is missing, create a new conversation automatically
+
         if (!conversationId) {
+
             console.log("\n--------------------\n[Auto-Create] No conversationId provided. Creating new conversation...\n--------------------\n");
+
             const newConversation = await ConversationModel.create({
                 user_id: CurrentUser,
                 title: message.substring(0, 30) + "...", // Use first 30 chars as title
             });
 
             if (newConversation) {
+
                 conversationId = newConversation._id; // Update variable to use new ID
+
                 console.log(`\n--------------------\n[Auto-Create] New Conversation Created: ${conversationId}\n--------------------\n`);
-            } else {
+            }
+            else {
                 return res.status(500).json({ message: "Error creating new conversation" });
             }
+
         }
-        // --------------------------------------
+
 
         /* Fetch existing conversation context */
         // OPTIMIZATION: Check if history is provided by the client to avoid DB lookup
         let contextMessages;
+
         if (history && Array.isArray(history)) {
             // Validate and sanitize client-provided history
             contextMessages = history.map(msg => ({
                 role: msg.role,
                 content: msg.content
             }));
+
             console.log("\n--------------------\n[Controller] Using client-provided chat history using the Chat History from frontend to genrate the Context Messages Array.\n--------------------\n");
         } else {
             // Fallback to database fetch
-            const dbContext = await getChatContext(conversationId, CurrentUser);
+            const dbContext = await getChatContext(conversationId, CurrentUser).sort({ createdAt: -1 }).lmit(5);
             if (dbContext.error) {
                 return res.status(500).json({
                     message: "Error in getChatContext",
@@ -68,26 +76,6 @@ const chatController = async (req, res) => {
             contextMessages = dbContext;
         }
 
-
-
-        // --- WEB SEARCH LOGIC ---
-        // Check if manual (true) or auto ("auto" + keyword match)
-        // Ensure strictly boolean or "auto" string.
-        const isManualSearch = useWebSearch === true;
-        const isAutoSearch = useWebSearch === "auto" && shouldAutoSearch(message);
-
-        if (isManualSearch || isAutoSearch) {
-            console.log(`[Controller] Web Search Triggered: Manual=${isManualSearch}, Auto=${isAutoSearch}`);
-            const webContext = await performWebSearch(message);
-            if (webContext) {
-                // Inject search results as a SYSTEM message so the AI "knows" it
-                contextMessages.push({
-                    role: "system",
-                    content: `Current Web Search Context:\n${webContext}`
-                });
-                console.log("\n--------------------\n[Controller] Injected Web Search Context sent the tavily seach result response to the AI Through message context.\n--------------------\n");
-            }
-        }
 
 
 
@@ -127,74 +115,47 @@ const chatController = async (req, res) => {
 
 
         // --- STREAMING OR NORMAL RESPONSE ---
-        if (isStreaming) {
-            // Set Headers for Streaming
-            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            res.setHeader('Transfer-Encoding', 'chunked');
 
-            // Optionally send the Conversation ID as a metadata header or first chunk
-            // Ideally we'd use SSE (text/event-stream) for structured data, but plain text is easier for "typewriter"
-            // We can send the ID in a header for the frontend to read if needed.
-            res.setHeader('x-conversation-id', conversationId);
+        const toolConfig = { perform_web_search: useWebSearch !== false }; /* default true until user makes it false */
+        const aistream = await generateResponse(contextMessages, selectedModel, toolConfig);
 
-            const stream = await generateResponse(contextMessages, selectedModel, true);
+        if (aistream.error) {
+            return res.status(500).json(aistream); // Safe to JSON because headers aren't sent yet
+        }
 
-            if (stream.error) {
-                return res.status(500).json(stream);
-            }
+        // Set Headers for Streaming ONLY AFTER validating success
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Transfer-Encoding', 'chunked');
+        res.setHeader('x-conversation-id', conversationId);
 
-            let fullAiResponse = "";
+        let fullAiResponse = "";
 
-            try {
-                for await (const chunk of stream) {
-                    const content = chunk.choices[0]?.delta?.content || "";
-                    if (content) {
-                        res.write(content);
-                        fullAiResponse += content;
-                    }
-                }
-            } catch (streamError) {
-                console.error("Stream Error:", streamError);
-                res.write("\n[Error: Stream interrupted]");
-            } finally {
-                res.end(); // End the stream
-
-                // Save full response to DB
-                if (fullAiResponse) {
-                    await MessageModel.create({
-                        user_id: CurrentUser,
-                        conversation_id: conversationId,
-                        role: "assistant", // Using 'assistant' to match MessageModel enum
-                        content: fullAiResponse
-                    });
-                    console.log("[Controller] Saved full AI response to DB.");
+        try {
+            for await (const chunk of aistream) {
+                const content = chunk.choices[0]?.delta?.content || "";
+                if (content) {
+                    res.write(content);
+                    fullAiResponse += content;
                 }
             }
+        } catch (streamError) {
+            console.error("Stream Error:", streamError);
+            res.write("\n[Error: Stream interrupted]");
+        } finally {
+            res.end(); // End the stream
 
-        } else {
-            // NORMAL (Non-Streaming) logic
-            const aiResponse = await generateResponse(contextMessages, selectedModel, false);
-
-            if (aiResponse.error) {
-                return res.status(500).json({
-                    message: "Error in generateResponse",
-                    error: aiResponse.error
+            // Save full response to DB
+            if (fullAiResponse) {
+                await MessageModel.create({
+                    user_id: CurrentUser,
+                    conversation_id: conversationId,
+                    role: "assistant", // Using 'assistant' to match MessageModel enum
+                    content: fullAiResponse
                 });
+                console.log("[Controller] Saved full AI response to DB.");
             }
 
-            // Save AI response in database
-            const saveAIMessage = await MessageModel.create({
-                user_id: CurrentUser,
-                conversation_id: conversationId,
-                role: "assistant",
-                content: aiResponse.content
-            });
 
-            return res.status(200).json({
-                message: "Success",
-                conversationId: conversationId,
-                data: aiResponse
-            });
         }
 
     } catch (error) {

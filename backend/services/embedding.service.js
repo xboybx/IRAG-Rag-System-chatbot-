@@ -1,81 +1,8 @@
-// const Openai = require("openai");
-
-// const openai = new Openai({
-//     baseURL: 'https://openrouter.ai/api/v1',
-//     apiKey: process.env.OPEN_ROUTER_API_KEY,
-//     defaultHeaders: {
-//         'HTTP-Referer': process.env.SITE_URL,
-//         'X-Title': process.env.SITE_NAME,
-//     },
-// });
-
-// const embeddingModels = [
-//     "intfloat/e5-base-v2",
-//     "intfloat/e5-large-v2",
-//     "intfloat/multilingual-e5-large",
-//     "thenlper/gte-base",
-//     "thenlper/gte-large"
-// ];
-
-// let roundRobinIndex = 0;
-
-// /**
-//  * Generates an embedding for the given input text.
-//  * Uses a round-robin fallback mechanism with multiple models.
-//  */
-// const generateEmbedding = async (text) => {
-//     try {
-//         // Cleaning the text
-//         const cleanText = text.replace(/\n/g, " ");
-
-//         const startIndex = roundRobinIndex;
-//         // Update index for next request (Round Robin)
-//         roundRobinIndex = (roundRobinIndex + 1) % embeddingModels.length;
-
-//         let lastError = null;
-
-//         for (let i = 0; i < embeddingModels.length; i++) {
-//             const currentIndex = (startIndex + i) % embeddingModels.length;
-//             const model = embeddingModels[currentIndex];
-
-//             try {
-//                 console.log(`[Embedding] Attempting model: ${model} (Index: ${currentIndex})`);
-
-//                 const response = await openai.embeddings.create({
-//                     model: model,
-//                     input: cleanText,
-//                 });
-
-//                 if (response.data && response.data.length > 0) {
-//                     console.log(`[Embedding] Successfully generated embedding with ${model}`);
-//                     return response.data[0].embedding;
-//                 }
-
-//             } catch (innerError) {
-//                 console.warn(`[Embedding] Model ${model} failed: ${innerError.message}. Trying next...`);
-//                 lastError = innerError;
-//             }
-//         }
-
-//         console.error("[Embedding] All models failed.");
-//         throw lastError || new Error("All embedding models failed.");
-
-//     } catch (error) {
-//         console.error("Error generating embedding:", error.message);
-//         throw error;
-//     }
-// }
-
-// module.exports = {
-//     generateEmbedding
-// };
-
-
 const Openai = require("openai");
 
 const openai = new Openai({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPEN_ROUTER_API_KEY,
+    baseURL: process.env.EMBED_MODEL_BASE_URL,
+    apiKey: process.env.EMBED_MODEL_API_KEY,
     defaultHeaders: {
         'HTTP-Referer': process.env.SITE_URL,
         'X-Title': process.env.SITE_NAME,
@@ -110,7 +37,6 @@ const generateEmbedding = async (text) => {
         // Example using OpenRouter's OpenAI compatible endpoint
         // NOTE: Verify strictly if OpenRouter supports free embeddings. 
         // Often, 'text-embedding-3-small' is the standard go-to even if paid (it's nearly free).
-        // For strictly "Free", Google's Gemini API is the best bet.
 
         const response = await openai.embeddings.create({
             model: "text-embedding-3-small", // Standard reliable model (cheap)

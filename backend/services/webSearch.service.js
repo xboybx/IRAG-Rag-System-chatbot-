@@ -1,7 +1,6 @@
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
 
 /* if the user uses the we seach option we use this perform web search  */
-
 const performWebSearch = async (query) => {
 
 
@@ -59,18 +58,5 @@ const performWebSearch = async (query) => {
 
 }
 
-/* Simple heuristic to decide if we SHOULD search automatically.
- * Checks for keywords like "latest", "price", "who is", etc.
- */
-const shouldAutoSearch = (query) => {
-    const keywords = [
-        "latest", "current", "news", "today", "price", "weather",
-        "who is", "what is", "when is", "upcoming", "2024", "2025"
-    ];
-    const match = keywords.some(k => query.toLowerCase().includes(k));
-    if (match) {
-        console.log(`\n--------------------\n[WebSearch Service] Auto-trigger: Query contains keyword match.\n--------------------\n`);
-    }
-    return match;
-};
-module.exports = { performWebSearch, shouldAutoSearch };
+
+module.exports = { performWebSearch };

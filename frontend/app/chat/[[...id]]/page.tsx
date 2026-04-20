@@ -29,6 +29,8 @@ import {
     DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
 import MessageContent from '@/components/MessageContent';
+import { TypeAnimation } from 'react-type-animation';
+
 
 export default function ChatPage() {
     const params = useParams();
@@ -527,21 +529,29 @@ export default function ChatPage() {
                                     </>
                                 )}
 
-                                {/* Thinking Gradient Loader */}
+                                {/* Industry Standard Typewriter Loader */}
                                 {isLoading && (
-                                    <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mt-2">
-                                        <div className="relative overflow-hidden rounded-[18px] md:rounded-[24px] rounded-tl-none px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 bg-white/5 border border-black/5 dark:border-white/5 w-fit shadow-lg backdrop-blur-md">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/10 to-black/5 dark:from-white/5 dark:via-white/10 dark:to-white/5 animate-pulse"></div>
-                                            <div className="relative flex items-center gap-2 md:gap-3">
-                                                <div className="flex gap-1 md:gap-1.5">
-                                                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_0ms]"></div>
-                                                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_200ms]"></div>
-                                                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-black/60 dark:bg-white/60 animate-[bounce_1s_infinite_400ms]"></div>
-                                                </div>
-                                                <span className="text-xs md:text-sm font-semibold text-black/70 dark:text-white/70 tracking-wide animate-pulse">
-                                                    AI is thinking...
-                                                </span>
+                                    <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mt-2 mb-4">
+                                        <div className="text-sm md:text-base font-bold text-foreground/80 dark:text-white/80 tracking-tight flex items-center gap-2">
+                                            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
+                                               <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
                                             </div>
+                                            <TypeAnimation
+                                                sequence={[
+                                                    'IRAG is analyzing your query...',
+                                                    1000,
+                                                    'IRAG is gathering information...',
+                                                    1000,
+                                                    'IRAG is formulating an answer...',
+                                                    1000,
+                                                    'IRAG is almost done...',
+                                                    1000
+                                                ]}
+                                                wrapper="span"
+                                                speed={50}
+                                                repeat={Infinity}
+                                                className="italic"
+                                            />
                                         </div>
                                     </div>
                                 )}
