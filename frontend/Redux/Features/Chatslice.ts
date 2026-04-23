@@ -34,12 +34,12 @@ const initialState: ChatState = {
 // Async Thunk for sending messages
 export const sendMessage = createAsyncThunk(
     'chat/sendMessage',
-    async ({ message, history, conversationId, model, ragEnabled, webSearch }: {
+    async ({ message, history, conversationId, model, /* ragEnabled, */ webSearch }: {
         message: string,
         history: Message[],
         conversationId: string | null,
         model: string,
-        ragEnabled: boolean,
+        // ragEnabled: boolean,
         webSearch: boolean
     }, { rejectWithValue }) => {
         try {
@@ -53,7 +53,7 @@ export const sendMessage = createAsyncThunk(
                     selectedModel: model,
                     conversationId: conversationId, // Send null/undefined if new
                     history: history,
-                    useRag: ragEnabled,
+                    // useRag: ragEnabled,
                     useWebSearch: webSearch
                 }
             );
@@ -185,6 +185,14 @@ const chatSlice = createSlice({
                         role: msg.role,
                         content: msg.content
                     }));
+                }
+                if (action.payload.file) {
+                    state.uploadedFile = {
+                        name: action.payload.file.originalName,
+                        id: action.payload.file._id
+                    };
+                } else {
+                    state.uploadedFile = null;
                 }
             })
             .addCase(fetchMessages.rejected, (state, action) => {

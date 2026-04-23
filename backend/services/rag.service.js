@@ -2,6 +2,7 @@ const ConversationModel = require("../models/ConverstionModel.js");
 const EmbeddingModel = require("../models/EmbeddingModel.js");
 const { generateEmbedding } = require("./embedding.service.js");
 
+
 /**
  * Performs RAG (Retrieval Augmented Generation) logic.
  * Checks if a conversation has associated files, and if so,
@@ -12,6 +13,7 @@ const { generateEmbedding } = require("./embedding.service.js");
  * @returns {Promise<string|null>} - Returns the context string to inject, or null if no context found/needed
  */
 const performRagCheck = async (conversationId, userMessage) => {
+    console.log("entered Rag Search")
     try {
         // 1. Check for files in conversation
         const conversation = await ConversationModel.findById(conversationId);
@@ -20,7 +22,7 @@ const performRagCheck = async (conversationId, userMessage) => {
             return null; // No files, no RAG needed
         }
 
-        /* If any File is present in the conversation Then we use rag to get the response */
+        /* If routing decided DOCS, then we use rag to get the response */
         console.log(`\n\n[RAG Service] checking context for conversation: ${conversationId}\n--------------------\n`);
 
         // 2. Generate Embedding

@@ -79,3 +79,8 @@ add web Tool calling feature auto and selected
 -Zai ai failing to call the tools 
 -have a small query router for rag or use rag as the tool call -see best option as per our code
 -so if ay chat overpasses the 10 messages array ,forst time the ai does the summary from 11 th message ai summarizies the previosu summary again and again, wich can lose info - instead have evey time 10 linit messages from backend by totally removing the ai or comeup with any solution
+-it also has the probelm of rag first context -like to if i uplad the doc and ask "whats this about" without entioniing about the document a little its gives hallucianation answe solve it by query router or something.
+
+--The uploadedfile i is not staying afer a reload - we can fetch file for every reload or the any solution
+--for every refresh the  web seach ie enabled and rag also but remove rag button because we implmented query router
+

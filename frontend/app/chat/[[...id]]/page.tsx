@@ -51,12 +51,34 @@ export default function ChatPage() {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     // Additional Local Options (Can be moved to Redux later if needed globally)
-    const [ragEnabled, setRagEnabled] = useState(true);
+    // const [ragEnabled, setRagEnabled] = useState(true); // Commented out: Using Query Router in backend
     const [webSearch, setWebSearch] = useState(false);
 
     // Ref for auto-scrolling to bottom
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
+
+    // Ref for tracking the very first render to prevent overwriting localStorage
+    const isInitialMount = useRef(true);
+
+    // Persistence: Load Web Search preference ONLY once on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('irag_web_search');
+        if (saved !== null) {
+            setWebSearch(saved === 'true');
+        }
+        // After loading, allow future saves
+        setTimeout(() => {
+            isInitialMount.current = false;
+        }, 100);
+    }, []);
+
+    // Persistence: Save Web Search preference ONLY when user changes it
+    useEffect(() => {
+        if (!isInitialMount.current) {
+            localStorage.setItem('irag_web_search', webSearch.toString());
+        }
+    }, [webSearch]);
 
     useEffect(() => {
         setMounted(true);
@@ -64,10 +86,16 @@ export default function ChatPage() {
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        if (messagesEndRef.current) {
+            // Use 'instant' during active loading/typing to prevent jitter
+            // Smooth behavior fights itself when called every few milliseconds
+            messagesEndRef.current.scrollIntoView({
+                behavior: isLoading ? 'auto' : 'smooth',
+                block: 'end'
+            });
+        }
+    }, [messages, isLoading]);
 
-    // Sync URL ID with Redux and Load Messages
     // Sync URL ID with Redux and Load Messages
     useEffect(() => {
         if (conversationIdParam) {
@@ -85,10 +113,11 @@ export default function ChatPage() {
             }
         }
     }, [conversationIdParam, currentConversationId, dispatch]);
-
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
     //sending user messgae
     const handleSend = async () => {
+        console.log("First Request")
         if (!input.trim()) return;
 
         if (!isAuthenticated) {
@@ -106,7 +135,7 @@ export default function ChatPage() {
         dispatch(setLoading(true));
 
         // 3. Add Placeholder Assistant Message
-        dispatch(addMessage({ role: 'assistant', content: '' }));
+        dispatch(addMessage({ role: 'system', content: '' }));
 
         // 4. Prepare Payload
         let backendModelName = model;
@@ -122,26 +151,28 @@ export default function ChatPage() {
 
         try {
             const urlId = currentConversationId || 'new';
-            // Use proxy path /api which Next.js rewrites to backend
-            const response = await fetch(`/api/ai/chat/${urlId}`, { // Direct fetch for streaming
+            // IMPORTANT: Call backend DIRECTLY (not via /api proxy) for streaming.
+            // Next.js rewrites proxy buffers the entire response before forwarding it,
+            // which kills the real-time streaming effect in the browser.
+
+            const response = await fetch(`${BACKEND_URL}/ai/chat/${urlId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Add Auth Token - Assuming it's in localStorage or cookie.
-                    // Since we use httpOnly cookies, credentials: 'include' is needed.
                 },
                 body: JSON.stringify({
                     message: userMessage,
                     selectedModel: backendModelName,
                     conversationId: currentConversationId,
                     history: messages, // Send history
-                    useRag: ragEnabled,
+                    // useRag: ragEnabled,
                     useWebSearch: webSearch
                 }),
-                // IMPORTANT: Send cookies
+                // IMPORTANT: Send cookies for auth
                 credentials: 'include',
                 signal: abortControllerRef.current.signal
             });
+
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -360,7 +391,8 @@ export default function ChatPage() {
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                            {/* RAG Master Toggle - Compact on Mobile */}
+                            {/* RAG Master Toggle - Commented out: Transitioned to Query Router */}
+                            {/* 
                             <button
                                 onClick={() => setRagEnabled(!ragEnabled)}
                                 className={`
@@ -373,6 +405,7 @@ export default function ChatPage() {
                                 <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${ragEnabled ? 'bg-indigo-500 animate-pulse' : 'bg-slate-400'}`}></div>
                                 <span className="text-[10px] md:text-xs font-bold tracking-wide">RAG</span>
                             </button>
+                            */}
 
                             {/* Web Search Master Toggle - Compact on Mobile */}
                             <button
@@ -509,9 +542,9 @@ export default function ChatPage() {
                                                 </div>
                                                 <h2 className="text-2xl md:text-3xl font-semibold text-foreground/80 dark:text-white mb-2 md:mb-3 tracking-tight text-center">Ready to research?</h2>
                                                 <p className="text-base md:text-lg text-muted-foreground/60 dark:text-white/70 max-w-lg text-center leading-relaxed">
-                                                    IRAG is your AI research assistant. Use it like ChatGPT for normal chat, enable <b>Web Search</b> for live info, or upload documents to activate <b>RAG</b> for answering from your files.
+                                                    IRAG is your AI research assistant. Use it like ChatGPT for normal chat, enable <b>Web Search</b> for live info, or upload documents to auto-activate <b>RAG</b> for answering from your files.
                                                     <br className="hidden md:block" />
-                                                    Toggle RAG or Web Search to enhance your answers.
+                                                    Web Search can be toggled manually, while RAG is now handled automatically for you.
                                                 </p>
                                             </div>
                                         )}
@@ -534,7 +567,7 @@ export default function ChatPage() {
                                     <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mt-2 mb-4">
                                         <div className="text-sm md:text-base font-bold text-foreground/80 dark:text-white/80 tracking-tight flex items-center gap-2">
                                             <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
-                                               <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                                <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
                                             </div>
                                             <TypeAnimation
                                                 sequence={[
@@ -591,7 +624,7 @@ export default function ChatPage() {
                                         <Input
                                             value={input}
                                             onChange={(e) => setInput(e.target.value)}
-                                            placeholder={ragEnabled ? "Ask RAG Knowledge..." : webSearch ? "Search the Web..." : "Ask anything..."}
+                                            placeholder={webSearch ? "Search the Web..." : "Ask anything..."} // Removed ragEnabled check
                                             className="w-full bg-transparent border-none h-[44px] md:h-[50px] px-4 text-base md:text-lg text-foreground dark:text-white placeholder:text-muted-foreground/50 dark:placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium tracking-normal"
                                             onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
                                         />

@@ -15,7 +15,7 @@ const openai = new Openai({
 
 
 const MODEL_MAPPING = {
-    "Z-Air": "GLM 4.5 Air",
+    // "GPT OSS": "GPT OSS 120B",
     "Trinity": "Trinity Mini",
     "Meta Llama": "Meta Llama 3.3 70B Instruct"
     // Add more mappings as needed
@@ -26,7 +26,7 @@ const MODEL_MAPPING = {
 /* Model names form app.clod */
 /* The control loops through the array and uses models if previous one fails */
 const AUTO_MODELS = [
-    "GLM 4.5 Air",
+    // "GPT OSS 120B",
     "Trinity Mini",
     "Meta Llama 3.3 70B Instruct"
 
@@ -79,85 +79,106 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
 
         const finalMessages = messages.length > 10 ? await summarizeHistory(messages) : messages;
 
-        for (let model of modelsToTry) {
-            try {
+        // Wrap the streaming logic inside an AsyncGenerator to immediately return the stream object instance
+        const streamGenerator = async function* () {
+            for (let model of modelsToTry) {
+                try {
+                    let currentMessages = [
+                        { role: "system", content: systemPrompt() },
+                        ...finalMessages
+                    ];
 
-                let currentMessages = [
-                    { role: "system", content: systemPrompt() },
-                    ...finalMessages
-                ];
+                    console.log(`\n--------------------\n[AI Service] Attempting model: ${model}\n--------------------\n`);
 
-                console.log(`\n--------------------\n[AI Service] Attempting model: ${model}\n--------------------\n`);
+                    let isToolCall = true;
 
+                    while (isToolCall) {
+                        /* Now filter the tools wich are true */
+                        const activeTools = availabletools.filter(tool => toolConfig[tool.function.name] === true);
 
-                let isToolCall = true;
+                        // If the array is empty, we must pass 'undefined' to ai , so it doesn't crash
+                        const finalToolsToPass = activeTools.length > 0 ? activeTools : undefined;
 
-                while (isToolCall) {
+                        console.log(`[DEBUG] Call to OpenAI (stream: true) started at ${new Date().toISOString()}`);
 
-                    /* Now filter the tools wich are true */
-                    const activeTools = availabletools.filter(tool => toolConfig[tool.function.name] === true);
-
-                    // If the array is empty, we must pass 'undefined' to ai , so it doesn't crash
-                    const finalToolsToPass = activeTools.length > 0 ? activeTools : undefined;
-
-                    const response = await openai.chat.completions.create({
-                        model: model,
-                        messages: currentMessages,
-                        stream: false,
-                        tools: finalToolsToPass,
-                        tool_choice: finalToolsToPass ? "auto" : undefined  /* AI automatically decides to use tools or not */
-                    });
-
-                    /* Now we will have the first ai Response */
-                    const responseMessage = response.choices[0].message;
-
-                    // Support providers that return undefined OR an empty array []
-                    if (!responseMessage.tool_calls || responseMessage.tool_calls.length === 0) {
-                        isToolCall = false;
-
-                        /* Stream the Response */
-                        console.log("starting Stream: ")
-                        return await openai.chat.completions.create({
+                        const stream = await openai.chat.completions.create({
                             model: model,
                             messages: currentMessages,
-                            stream: true
+                            stream: true,
+                            tools: finalToolsToPass,
+                            tool_choice: finalToolsToPass ? "auto" : undefined
                         });
 
+                        let toolCallsCollector = {};
+                        let hasToolCallsInStream = false;
+                        let fullContent = "";
 
-                    }
-                    else {
-                        console.log("AI requesting for tool", responseMessage.tool_calls.map(t => t.function.name))
+                        for await (const chunk of stream) {
+                            const delta = chunk.choices[0]?.delta;
 
-                        /* now add the ai tool query to hsitory */
-                        currentMessages.push(responseMessage)
-
-                        for (const toolcall of responseMessage.tool_calls) {
-
-                            const args = JSON.parse(toolcall.function.arguments);
-                            const toolresult = await executeTool(toolcall.function.name, args)
-
-                            /* Push this tool rseult to the cureent message */
-                            currentMessages.push({
-                                tool_call_id: toolcall.id,
-                                role: "tool",
-                                name: toolcall.function.name,
-                                content: toolresult || "Executed, but returned blank.",
-                            });
-
+                            if (delta?.tool_calls) {
+                                hasToolCallsInStream = true;
+                                for (const tc of delta.tool_calls) {
+                                    if (!toolCallsCollector[tc.index]) {
+                                        toolCallsCollector[tc.index] = {
+                                            id: tc.id,
+                                            type: "function",
+                                            function: { name: tc.function?.name || "", arguments: tc.function?.arguments || "" }
+                                        };
+                                    } else {
+                                        if (tc.function?.name) toolCallsCollector[tc.index].function.name += tc.function.name;
+                                        if (tc.function?.arguments) toolCallsCollector[tc.index].function.arguments += tc.function.arguments;
+                                    }
+                                }
+                            } else if (delta?.content) {
+                                fullContent += delta.content;
+                                yield chunk; // Stream to user in real-time immediately!
+                            }
                         }
 
-                    }
+                        if (hasToolCallsInStream) {
+                            const toolCallsArray = Object.values(toolCallsCollector);
+                            console.log("AI requesting for tool", toolCallsArray.map(t => t.function.name));
 
+                            currentMessages.push({
+                                role: "assistant",
+                                content: fullContent || null, // Can be null if it just returned tool calls
+                                tool_calls: toolCallsArray
+                            });
+
+                            for (const toolcall of toolCallsArray) {
+                                let args = {};
+                                try {
+                                    args = JSON.parse(toolcall.function.arguments || "{}");
+                                } catch (e) {
+                                    console.error("JSON parse error for tool arguments:", e);
+                                }
+                                const toolresult = await executeTool(toolcall.function.name, args);
+
+                                currentMessages.push({
+                                    tool_call_id: toolcall.id,
+                                    role: "tool",
+                                    name: toolcall.function.name,
+                                    content: toolresult || "Executed, but returned blank.",
+                                });
+                            }
+                            isToolCall = true; // loop will continue
+                        } else {
+                            isToolCall = false; // We got the final stream, tools are done
+                            return; // exit generator gracefully
+                        }
+                    }
+                } catch (error) {
+                    console.log(`\n--------------------\n`, "[AI Service] Model ", model, " failed:", error.message, "\n--------------------\n");
+                    continue; // try next model fallback
                 }
             }
-            catch (error) {
 
-                console.log(`\n--------------------\n`, "[AI Service] Model ", model, " failed:", error.message, "\n--------------------\n");
-                continue;
-            }
-        }
+            // Exiting without returning natively means all models failed
+            yield { choices: [{ delta: { content: "\n[Error: No response from any model]" } }] };
+        };
 
-        return { error: "No response from any model" };
+        return streamGenerator();
 
     } catch (error) {
         return { error: "Error in generating response from (generateResponse function)", message: error.message };

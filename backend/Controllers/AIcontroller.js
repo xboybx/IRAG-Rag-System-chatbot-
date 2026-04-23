@@ -9,15 +9,16 @@ const { parseFile } = require("../utils/FileParser.js");
 const FileModel = require("../models/FileModel.js");
 const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
 const { generateEmbeddingForChunks } = require("../services/embedding.service.js");
+const { routeQuery } = require("../services/queryRouter.service.js")
 
 
 
 
 const chatController = async (req, res) => {
+    console.log("Entered the new Chat controller")
     try {
         let { conversationId, message, selectedModel, history, useRag, useWebSearch, stream } = req.body;
         const CurrentUser = req.user.id;
-        const isStreaming = stream !== false;
 
         if (!CurrentUser) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -63,8 +64,12 @@ const chatController = async (req, res) => {
                 content: msg.content
             }));
 
+
             console.log("\n--------------------\n[Controller] Using client-provided chat history using the Chat History from frontend to genrate the Context Messages Array.\n--------------------\n");
-        } else {
+
+        }
+        else {
+
             // Fallback to database fetch
             const dbContext = await getChatContext(conversationId, CurrentUser).sort({ createdAt: -1 }).lmit(5);
             if (dbContext.error) {
@@ -77,23 +82,30 @@ const chatController = async (req, res) => {
         }
 
 
+        /* Query Routing */
+        const QueryRouteRes = await routeQuery(message);//THis is only latest user query
 
+        console.log("The result of the queryRouteres:---------- ", QueryRouteRes);
 
-        // --- RAG CHECK (Using Service) ---
-        // Only run RAG if client enables it (or defaults to true)
-        const shouldRunRag = useRag !== false;
-        if (shouldRunRag) {
+        if (QueryRouteRes === "RAG") {
+
             const ragContext = await performRagCheck(conversationId, message);
+            console.log("The Rag content: ", ragContext)
+
             if (ragContext) {
                 // Inject context as a system message
                 contextMessages.push({
                     role: "system",
                     content: ragContext
                 });
-                console.log("\n--------------------\n[Controller] Injected RAG Context rag is used here that is ligiht similatity search to find wherater to use Rag or not based on user Input.\n--------------------\n");
+                // console.log("\n--------------------\n[Controller] Injected RAG Context rag is used here that is ligiht similatity search to find wherater to use Rag or not based on user Input.\n--------------------\n");
+
             }
         }
-        // --------------------------------
+
+
+
+
 
         // Only NOW append the User's latest message (so context is *before* the question)
         contextMessages.push({
@@ -111,7 +123,7 @@ const chatController = async (req, res) => {
 
 
         // Log the context messages for debugging
-        console.log("\n--------------------\n[Controller] Context Messages sent to AI:\n--------------------\n", JSON.stringify(contextMessages, null, 2), "\n--------------------\n");
+        // console.log("\n--------------------\n[Controller] Context Messages sent to AI:\n--------------------\n", JSON.stringify(contextMessages, null, 2), "\n--------------------\n");
 
 
         // --- STREAMING OR NORMAL RESPONSE ---
@@ -126,7 +138,11 @@ const chatController = async (req, res) => {
         // Set Headers for Streaming ONLY AFTER validating success
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
         res.setHeader('Transfer-Encoding', 'chunked');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('X-Accel-Buffering', 'no'); // Disable Nginx buffering
+        res.setHeader('Connection', 'keep-alive');
         res.setHeader('x-conversation-id', conversationId);
+        res.flushHeaders(); // Force send headers immediately, start streaming
 
         let fullAiResponse = "";
 
@@ -174,6 +190,7 @@ const chatController = async (req, res) => {
 
 //Create Conversation Manually
 const CreateConversationController = async (req, res) => {
+    console.log("entered Conversation created controller")
     try {
         const { title } = req.body;
 
@@ -359,7 +376,7 @@ const getMessagesController = async (req, res) => {
         const conversation = await ConversationModel.findOne({
             _id: conversationId,
             user_id: userId
-        });
+        }).populate("files");
 
         if (!conversation) {
             return res.status(404).json({ message: "Conversation not found or unauthorized" });
@@ -368,9 +385,15 @@ const getMessagesController = async (req, res) => {
         const messages = await MessageModel.find({ conversation_id: conversationId })
             .sort({ createdAt: 1 }); // Oldest first
 
+        let latestFile = null;
+        if (conversation.files && conversation.files.length > 0) {
+            latestFile = conversation.files[conversation.files.length - 1];
+        }
+
         return res.status(200).json({
             message: "Success",
-            data: messages
+            data: messages,
+            file: latestFile
         });
     } catch (error) {
         return res.status(500).json({
