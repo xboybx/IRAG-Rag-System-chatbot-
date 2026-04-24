@@ -17,6 +17,9 @@ const AuthMiddleware = async (req, res, next) => {
         next();
     } catch (err) {
         console.log("error AuthMiddleware", err);
+        if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: "Unauthorized: Token expired or invalid" });
+        }
         return res.status(500).json({
             message: "Error AuthMiddleware",
             error: err.message
