@@ -80,7 +80,7 @@ export const checkAuth = createAsyncThunk(
         try {
             // First, try to refresh the token using the HttpOnly cookie
             const refreshResponse = await axios.post(
-                `/api/user/refresh`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/refresh`,
                 {},
                 { withCredentials: true }
             );

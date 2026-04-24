@@ -44,7 +44,7 @@ export default function ChatPage() {
     const dispatch = useAppDispatch();
     const { messages, isLoading, model, currentConversationId, isUploading, uploadedFile, isFetchingMessages } = useAppSelector((state) => state.chat);
     const { isSidebarOpen, isUploadModalOpen } = useAppSelector((state) => state.ui);
-    const { isAuthenticated, token } = useAppSelector((state) => state.auth);
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     // Local State (Input is fine to keep local as it's transient)
     const [input, setInput] = useState('');//the user input message
@@ -159,7 +159,6 @@ export default function ChatPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                     message: userMessage,
