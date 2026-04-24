@@ -38,7 +38,7 @@ export const registerUser = createAsyncThunk(
     "auth/registerUser",
     async (userData: any, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`/api/user/register`, userData, { withCredentials: true });
+            const response = await axiosInstance.post(`/user/register`, userData);
             return response.data;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || "Registration failed");
@@ -51,7 +51,7 @@ export const loginUser = createAsyncThunk(
     "auth/loginUser",
     async (userData: any, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`/api/user/login`, userData, { withCredentials: true });
+            const response = await axiosInstance.post(`/user/login`, userData);
             return response.data;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || "Login failed");
@@ -79,8 +79,9 @@ export const checkAuth = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             // First, try to refresh the token using the HttpOnly cookie
+            const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
             const refreshResponse = await axios.post(
-                `/api/user/refresh`,
+                `${BACKEND_URL}/user/refresh`,
                 {},
                 { withCredentials: true }
             );

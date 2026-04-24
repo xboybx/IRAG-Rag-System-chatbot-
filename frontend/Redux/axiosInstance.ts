@@ -4,7 +4,7 @@ import { setToken, logoutUser } from './Features/UserSlice';
 
 
 const axiosInstance = axios.create({
-    baseURL: '/api', // Proxy through Next.js
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000', // Direct backend connection
     withCredentials: true, // Important for cookies (Refresh Token)
     headers: {
         'Content-Type': 'application/json',
@@ -40,8 +40,9 @@ export const setupInterceptors = (store: any) => {
 
                 try {
                     // Attempt to refresh the token using the HttpOnly cookie
+                    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
                     const refreshResponse = await axios.post(
-                        `/api/user/refresh`,
+                        `${BACKEND_URL}/user/refresh`,
                         {},
                         { withCredentials: true }
                     );
