@@ -113,7 +113,6 @@ export default function ChatPage() {
             }
         }
     }, [conversationIdParam, currentConversationId, dispatch]);
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
     //sending user messgae
     const handleSend = async () => {
@@ -154,6 +153,7 @@ export default function ChatPage() {
             // IMPORTANT: Call backend DIRECTLY (not via /api proxy) for streaming.
             // Next.js rewrites proxy buffers the entire response before forwarding it,
             // which kills the real-time streaming effect in the browser.
+            const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
             const response = await fetch(`${BACKEND_URL}/ai/chat/${urlId}`, {
                 method: 'POST',
