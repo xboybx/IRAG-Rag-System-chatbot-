@@ -15,9 +15,8 @@ const openai = new Openai({
 
 
 const MODEL_MAPPING = {
-    // "GPT OSS": "GPT OSS 120B",
     "Trinity": "Trinity Mini",
-    "Meta Llama": "Meta Llama 3.3 70B Instruct"
+    "Qwen": "Qwen 3 235B A22B Thinking 2507"
     // Add more mappings as needed
 };
 
@@ -26,9 +25,8 @@ const MODEL_MAPPING = {
 /* Model names form app.clod */
 /* The control loops through the array and uses models if previous one fails */
 const AUTO_MODELS = [
-    // "GPT OSS 120B",
     "Trinity Mini",
-    "Meta Llama 3.3 70B Instruct"
+    "Qwen 3 235B A22B Thinking 2507"
 
 ];
 
