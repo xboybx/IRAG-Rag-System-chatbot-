@@ -1,12 +1,19 @@
 const Openai = require("openai");
 
+const defaultHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+};
+if (process.env.SITE_URL) {
+    defaultHeaders['HTTP-Referer'] = process.env.SITE_URL;
+}
+if (process.env.SITE_NAME) {
+    defaultHeaders['X-Title'] = process.env.SITE_NAME;
+}
+
 const openai = new Openai({
     baseURL: process.env.EMBED_MODEL_BASE_URL,
     apiKey: process.env.EMBED_MODEL_API_KEY,
-    defaultHeaders: {
-        'HTTP-Referer': process.env.SITE_URL,
-        'X-Title': process.env.SITE_NAME,
-    },
+    defaultHeaders: defaultHeaders,
 });
 
 /**

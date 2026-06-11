@@ -4,19 +4,27 @@ const { availabletools, executeTool } = require("./tool.service.js");
 
 
 /* SDK Open Ai */
+const defaultHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+};
+if (process.env.SITE_URL) {
+    defaultHeaders['HTTP-Referer'] = process.env.SITE_URL;
+}
+if (process.env.SITE_NAME) {
+    defaultHeaders['X-Title'] = process.env.SITE_NAME;
+}
+
 const openai = new Openai({
     baseURL: process.env.AI_BASE_URL,
     apiKey: process.env.AI_API_KEY,
-    defaultHeaders: {
-        'HTTP-Referer': process.env.SITE_URL, // Optional. Site URL for rankings on openrouter.ai.
-        'X-Title': process.env.SITE_NAME, // Optional. Site title for rankings on openrouter.ai.
-    },
+    defaultHeaders: defaultHeaders,
 });
 
 
 const MODEL_MAPPING = {
     "Trinity": "Trinity Mini",
-    "Qwen": "Qwen 3 235B A22B Thinking 2507"
+    "Lamma": "Llama 3.1 8B",
+    "GPT": "GPT OSS 120B"
     // Add more mappings as needed
 };
 
@@ -26,7 +34,8 @@ const MODEL_MAPPING = {
 /* The control loops through the array and uses models if previous one fails */
 const AUTO_MODELS = [
     "Trinity Mini",
-    "Qwen 3 235B A22B Thinking 2507"
+    "Llama 3.1 8B",
+    "GPT OSS 120B"
 
 ];
 

@@ -46,7 +46,7 @@ Traditional chatbots only know what they were trained on. They can't read your f
 ## ✨ Features
 
 ### 🤖 AI & RAG Core
-- **Multi-Model Support** — Uses OpenRouter to access multiple AI models (Solar Pro 3, Arcee Trinity, LFM 2.5) with automatic round-robin fallback
+- **Multi-Model Support** — Uses Clod API to access multiple AI models (Trinity Mini, Llama 3.1 8B, GPT OSS 120B) with automatic round-robin fallback
 - **RAG Document Q&A** — Upload documents and ask questions about them with vector-similarity-based context retrieval
 - **Web Search Integration** — Powered by Tavily API for real-time web search (manual or auto-triggered)
 - **Streaming Responses** — Real-time typewriter-style response delivery via chunked transfer encoding
@@ -67,11 +67,11 @@ Traditional chatbots only know what they were trained on. They can't read your f
 - **Protected Routes** — Middleware-based route protection on the backend
 
 ### 🎨 Frontend Experience
-- **Modern UI** — Glassmorphism design with smooth animations and responsive layouts
-- **Dark Mode** — Full dark mode support via `next-themes`
+- **Modern UI** — Glassmorphism design with smooth animations, custom-engineered adaptive glowing background blobs (warm off-white in light mode, metallic silver/zinc in dark mode), and reduced border roundness (`rounded-[6px] md:rounded-[8px]`) for a clean, sharp grid aesthetic
+- **Dark Mode** — Complete neutral grey/zinc theme support with white branding header elements (IRAG brand text, user profile icon), and metallic silver/grey glowing highlights
 - **Mobile Responsive** — Fully responsive across all device sizes
 - **Conversation Sidebar** — Manage, switch, and delete conversations
-- **Engaging Loading Screen** — Animated card-stack loader showcasing app features while the backend wakes up
+- **Engaging Loading Screen** — Animated card-stack loader showcasing app features while the backend wakes up, and a minimal Material 3-style bouncing wave-dots loader during active message streaming
 - **Redux State Management** — Centralized state with Redux Toolkit for auth, chat, conversations, and UI
 - **Markdown Rendering** — AI responses rendered with full Markdown support including syntax highlighting
 
@@ -360,13 +360,13 @@ Name the index: `vector_index`
 
 ## 🤖 AI Models
 
-IRAG uses **OpenRouter** as a gateway to access multiple free AI models:
+IRAG is configured to use **Clod API** to access multiple free AI models:
 
-| Model | ID | Mode |
-|---|---|---|
-| Solar Pro 3 | `upstage/solar-pro-3:free` | Auto / Manual |
-| Arcee Trinity Large | `arcee-ai/trinity-large-preview:free` | Auto / Manual |
-| LFM 2.5 1.2B Thinking | `liquid/lfm-2.5-1.2b-thinking:free` | Auto / Manual |
+| Model | Clod ID | Mode | Mapped Frontend Name |
+|---|---|---|---|
+| Trinity Mini | `Trinity Mini` | Auto / Manual | Trinity |
+| Llama 3.1 8B | `Llama 3.1 8B` | Auto / Manual | Lamma |
+| GPT OSS 120B | `GPT OSS 120B` | Auto / Manual | GPT |
 
 - **Auto Mode**: Round-robin across all available models with automatic fallback
 - **Manual Mode**: Select a specific model from the dropdown
