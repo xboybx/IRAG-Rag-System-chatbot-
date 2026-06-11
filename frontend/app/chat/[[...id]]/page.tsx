@@ -15,7 +15,8 @@ import ConversationSidebar from "@/components/ConversationSidebar";
 import {
     Search, Moon, Sun, ArrowUp, Plus, Globe,
     ChevronDown, Wrench,
-    FileText, Image as UploadCloud, X, Menu, User, LogOut, Square
+    FileText, Image as UploadCloud, X, Menu, User, LogOut, Square,
+    Info, Github
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -29,7 +30,7 @@ import {
     DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
 import MessageContent from '@/components/MessageContent';
-import { TypeAnimation } from 'react-type-animation';
+
 
 
 export default function ChatPage() {
@@ -139,8 +140,8 @@ export default function ChatPage() {
         // 4. Prepare Payload
         let backendModelName = model;
         if (model === "Trinity Mini") backendModelName = "Trinity";
-        else if (model === "GLM 4.5 Air") backendModelName = "Z-Air";
-        else if (model === "Meta Llama 3.3 70B Instruct") backendModelName = "Meta Llama";
+        else if (model === "Llama 3.1 8B") backendModelName = "Lamma";
+        else if (model === "GPT OSS 120B") backendModelName = "GPT";
 
         // Create new AbortController
         if (abortControllerRef.current) {
@@ -273,72 +274,19 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="h-dvh w-screen relative flex font-sans overflow-hidden selection:bg-indigo-500/30 bg-slate-50 dark:bg-slate-950">
+        <div className="h-dvh w-screen relative flex font-sans overflow-hidden selection:bg-indigo-500/30 bg-[#faf9f6] dark:bg-zinc-950">
 
-            {/* Background Image */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{
-                        backgroundImage: 'url(https://ik.imagekit.io/mtkm3escy/rag-system/Rag_BG_image/bg2.jpg)',
-                    }}
-                ></div>
+            {/* Premium Blurred Glowing Blobs Background */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#faf9f6] dark:bg-zinc-950 transition-colors duration-500">
+                {/* Blob 1 */}
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 dark:from-zinc-400 dark:to-transparent blur-[100px] md:blur-[150px] opacity-30 dark:opacity-15 animate-pulse" style={{ animationDuration: '8s' }}></div>
+                {/* Blob 2 */}
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-pink-300 via-purple-300 to-blue-300 dark:from-zinc-500 dark:to-transparent blur-[120px] md:blur-[180px] opacity-25 dark:opacity-15 animate-pulse" style={{ animationDuration: '12s' }}></div>
+                {/* Blob 3 */}
+                <div className="absolute top-[30%] right-[20%] w-[35%] h-[35%] rounded-full bg-gradient-to-bl from-blue-300 to-indigo-400 dark:from-zinc-300 dark:to-transparent blur-[100px] md:blur-[150px] opacity-20 dark:opacity-10 animate-pulse" style={{ animationDuration: '10s' }}></div>
             </div>
 
-            {/* Upload Modal */}
-            {isUploadModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-[4px] animate-in fade-in duration-300 px-4">
-                    <div className="relative w-full max-w-sm bg-white/30 backdrop-blur-[40px] saturate-200 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-[32px] p-6 md:p-8 animate-in zoom-in-95 duration-300 overflow-hidden ring-1 ring-white/50">
-                        <button
-                            onClick={() => dispatch(setUploadModalOpen(false))}
-                            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-colors"
-                        >
-                            <X className="w-5 h-5 text-foreground/70" />
-                        </button>
 
-                        <div className="flex flex-col items-center justify-center text-center space-y-6">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-white/40 to-white/10 border border-white/50 shadow-inner flex items-center justify-center mb-2 backdrop-blur-md">
-                                <UploadCloud className="w-8 h-8 text-indigo-600 drop-shadow-sm" />
-                            </div>
-
-                            <div className="space-y-2">
-                                <h2 className="text-2xl font-bold tracking-tight text-foreground drop-shadow-sm">Upload File</h2>
-                                <p className="text-foreground/70 text-sm max-w-xs mx-auto font-medium">
-                                    Select a document to enhance your knowledge base.
-                                </p>
-                            </div>
-
-                            <div className="w-full">
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    id="file-upload"
-                                    onChange={handleFileUpload}
-                                    disabled={isUploading}
-                                />
-                                <label
-                                    htmlFor="file-upload"
-                                    className={`flex flex-col items-center justify-center gap-3 p-6 w-full rounded-3xl bg-white/20 border-2 border-dashed border-white/40 hover:bg-white/30 hover:border-white/60 transition-all hover:scale-[1.02] group cursor-pointer shadow-sm ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-                                        {isUploading ? (
-                                            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <FileText className="w-6 h-6 text-blue-600 drop-shadow-md" />
-                                        )}
-                                    </div>
-                                    <span className="text-base font-semibold text-foreground/80">
-                                        {isUploading ? "Uploading..." : "Select Document"}
-                                    </span>
-                                    <span className="text-xs text-foreground/50 uppercase tracking-widest font-bold">PDF, DOCX, TXT</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-gradient-to-b from-white/10 via-transparent to-transparent rotate-45 pointer-events-none"></div>
-                    </div>
-                </div>
-            )}
 
             {/* Main Layout with Sidebar */}
             <div className="relative z-10 w-full h-full overflow-hidden flex">
@@ -346,11 +294,11 @@ export default function ChatPage() {
                 {/* Sidebar - Desktop: Relative/Translated, Mobile: Absolute/Overlay */}
                 <div
                     className={`
-                        fixed inset-y-0 left-0 z-30 w-64 md:w-64
+                        fixed inset-y-0 left-0 z-30 w-72 md:w-72
                         transform transition-all duration-300 ease-in-out
                         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
                         md:relative md:translate-x-0 md:shrink-0
-                        ${!isSidebarOpen && "md:-ml-64!"} 
+                        ${!isSidebarOpen && "md:-ml-72!"} 
                     `}
                 >
                     <ConversationSidebar
@@ -388,7 +336,7 @@ export default function ChatPage() {
                                 <Menu className="w-5 h-5 text-black dark:text-white transition-colors duration-300" />
                             </button>
 
-                            <span className="text-base md:text-lg font-bold tracking-tight text-foreground/90 font-mono truncate">IRAG</span>
+                            <span className="text-base md:text-lg font-bold tracking-tight text-foreground/90 dark:text-white font-mono truncate">IRAG</span>
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-3 shrink-0">
@@ -403,10 +351,43 @@ export default function ChatPage() {
                                         : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10'}
                   `}
                             >
-                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${ragEnabled ? 'bg-indigo-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${ragEnabled ? 'bg-indigo-500 animate-pulse' : 'bg-zinc-400'}`}></div>
                                 <span className="text-[10px] md:text-xs font-bold tracking-wide">RAG</span>
                             </button>
                             */}
+
+                            {/* Developer Info Dropdown */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button
+                                        className="text-muted-foreground/60 hover:text-foreground dark:text-white/40 dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center p-1.5 active:scale-95"
+                                    >
+                                        <Info className="w-3.5 h-3.5" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56 mt-2 mr-4 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border-white/20 shadow-xl rounded-xl p-3" side="bottom" align="end">
+                                    <div className="flex flex-col items-center justify-center text-center space-y-3">
+                                        <div className="w-10 h-10 rounded-full bg-linear-to-tr from-indigo-500/10 to-purple-500/10 dark:from-white/10 dark:to-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center backdrop-blur-md">
+                                            <Github className="w-5 h-5 text-indigo-600 dark:text-white" />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <h3 className="text-sm font-bold tracking-tight text-foreground dark:text-white">Jaswanth</h3>
+                                            <p className="text-muted-foreground dark:text-white/60 text-[10px] max-w-[180px] leading-snug">
+                                                Developer of IRAG Chatbot
+                                            </p>
+                                        </div>
+                                        <a
+                                            href="https://github.com/xboybx"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-1.5 py-1.5 px-3 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold transition-all hover:scale-[1.02] shadow-sm cursor-pointer"
+                                        >
+                                            <Github className="w-3.5 h-3.5" />
+                                            <span>GitHub Profile</span>
+                                        </a>
+                                    </div>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
                             {/* Web Search Master Toggle - Compact on Mobile */}
                             <button
@@ -418,7 +399,7 @@ export default function ChatPage() {
                                         : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10'}
                                 `}
                             >
-                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${webSearch ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-colors duration-300 ${webSearch ? 'bg-blue-500 animate-pulse' : 'bg-zinc-400'}`}></div>
                                 <span className="text-[10px] md:text-xs font-bold tracking-wide">WEB</span>
                             </button>
 
@@ -455,7 +436,7 @@ export default function ChatPage() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="w-8 h-8 md:w-10 md:h-10 transition-all hover:scale-110 text-foreground/70 hover:text-foreground"
+                                        className="w-8 h-8 md:w-10 md:h-10 transition-all hover:scale-110 text-foreground/70 dark:text-white hover:text-foreground dark:hover:text-white"
                                     >
                                         <User className="w-4 h-4 md:w-5 md:h-5" />
                                     </Button>
@@ -521,7 +502,7 @@ export default function ChatPage() {
                     </header>
 
                     {/* Chat Area */}
-                    <main className="flex-1 flex flex-col relative overflow-hidden rounded-[20px] md:rounded-[40px] mx-2 mb-2 border border-white/20 dark:border-white/5 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20">
+                    <main className="flex-1 flex flex-col relative overflow-hidden rounded-lg md:rounded-[30px] mx-2 mb-2 border border-white/20 dark:border-0 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20 dark:ring-0">
 
                         {/* Messages */}
                         <ScrollArea className="flex-1 px-2 md:px-0 scroll-smooth scrollbar-hide" showScrollBar={false}>
@@ -553,7 +534,7 @@ export default function ChatPage() {
                                         {messages.map((msg, i) => (
                                             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mb-2 md:mb-0 max-w-full`}>
                                                 <div className={`text-sm md:text-base lg:text-lg leading-relaxed tracking-wide min-w-0 break-words overflow-x-auto max-w-full ${msg.role === 'user'
-                                                    ? 'max-w-[92%] sm:max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[18px] md:rounded-[24px] rounded-br-sm px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 shadow-md md:shadow-lg w-fit'
+                                                    ? 'max-w-[92%] sm:max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[18px] md:rounded-[24px] rounded-br-sm px-6 py-2 shadow-md md:shadow-lg w-fit'
                                                     : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-0 sm:px-1 md:px-2 py-1 md:py-2 mx-0 sm:mx-1 md:mx-0'
                                                     }`}>
                                                     <MessageContent content={msg.content} />
@@ -563,29 +544,22 @@ export default function ChatPage() {
                                     </>
                                 )}
 
-                                {/* Industry Standard Typewriter Loader */}
+                                {/* Material 3-style Bouncing Wave Dots Loader */}
                                 {isLoading && (
                                     <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mt-2 mb-4">
-                                        <div className="text-sm md:text-base font-bold text-foreground/80 dark:text-white/80 tracking-tight flex items-center gap-2">
-                                            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
-                                                <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                            </div>
-                                            <TypeAnimation
-                                                sequence={[
-                                                    'IRAG is analyzing your query...',
-                                                    1000,
-                                                    'IRAG is gathering information...',
-                                                    1000,
-                                                    'IRAG is formulating an answer...',
-                                                    1000,
-                                                    'IRAG is almost done...',
-                                                    1000
-                                                ]}
-                                                wrapper="span"
-                                                speed={50}
-                                                repeat={Infinity}
-                                                className="italic"
-                                            />
+                                        <style>{`
+                                            @keyframes wave-bounce {
+                                                0%, 100% { transform: translateY(0); }
+                                                50% { transform: translateY(-5px); }
+                                            }
+                                            .animate-wave-dot {
+                                                animation: wave-bounce 0.8s infinite ease-in-out;
+                                            }
+                                        `}</style>
+                                        <div className="flex items-center space-x-1.5 py-1">
+                                            <div className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full animate-wave-dot" style={{ animationDelay: '-0.3s' }}></div>
+                                            <div className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full animate-wave-dot" style={{ animationDelay: '-0.15s' }}></div>
+                                            <div className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full animate-wave-dot" style={{ animationDelay: '0s' }}></div>
                                         </div>
                                     </div>
                                 )}
@@ -599,7 +573,7 @@ export default function ChatPage() {
                         <div className="absolute bottom-4 md:bottom-6 left-0 right-0 px-2 md:px-6 flex justify-center z-20 pointer-events-none">
                             <div className="w-full max-w-[1600px] relative group pointer-events-auto">
 
-                                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-[30px] md:rounded-[35px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 dark:from-zinc-400/20 dark:via-zinc-500/20 dark:to-zinc-300/20 rounded-[30px] md:rounded-[35px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
                                 <div className="relative z-10 flex flex-col bg-white/40 dark:bg-neutral-900/40 backdrop-blur-[60px] saturate-150 border border-white/40 dark:border-white/10 rounded-[30px] md:rounded-[35px] shadow-2xl transition-all duration-300 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)]">
 
@@ -634,14 +608,50 @@ export default function ChatPage() {
                                     <div className="flex items-center justify-between px-2 md:px-3 pb-2 md:pb-3 pt-1">
 
                                         <div className="flex items-center gap-1 md:gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => dispatch(setUploadModalOpen(true))}
-                                                className="h-8 w-8 md:h-9 md:w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5 active:scale-95"
-                                            >
-                                                <Plus className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5px]" />
-                                            </Button>
+                                            <DropdownMenu open={isUploadModalOpen} onOpenChange={(open) => dispatch(setUploadModalOpen(open))}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 md:h-9 md:w-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-muted-foreground dark:text-white hover:text-foreground dark:hover:text-white transition-all border border-black/5 dark:border-white/5 active:scale-95"
+                                                    >
+                                                        <Plus className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5px]" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent className="w-64 mb-4 ml-4 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border-white/20 shadow-xl rounded-2xl p-4" side="top" align="start">
+                                                    <div className="flex flex-col items-center justify-center text-center space-y-4">
+                                                        <div className="w-12 h-12 rounded-full bg-linear-to-tr from-white/40 to-white/10 border border-white/50 shadow-inner flex items-center justify-center backdrop-blur-md">
+                                                            <UploadCloud className="w-5 h-5 text-indigo-600 dark:text-white drop-shadow-sm animate-pulse" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <h3 className="text-sm font-bold tracking-tight text-foreground dark:text-white">Upload Document</h3>
+                                                            <p className="text-muted-foreground dark:text-white/60 text-[10px] max-w-[180px] leading-tight">
+                                                                PDF, DOCX, XLSX, CSV, TXT, JSON
+                                                            </p>
+                                                        </div>
+                                                        <div className="w-full">
+                                                            <input
+                                                                type="file"
+                                                                className="hidden"
+                                                                id="file-upload-popup"
+                                                                onChange={handleFileUpload}
+                                                                disabled={isUploading}
+                                                            />
+                                                            <label
+                                                                htmlFor="file-upload-popup"
+                                                                className={`flex items-center justify-center gap-2 py-2 px-3 w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold hover:scale-[1.02] transition-all cursor-pointer shadow-md ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                                                            >
+                                                                {isUploading ? (
+                                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                                ) : (
+                                                                    <FileText className="w-4 h-4" />
+                                                                )}
+                                                                <span>{isUploading ? "Uploading..." : "Select File"}</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
 
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -677,8 +687,8 @@ export default function ChatPage() {
                                                         <span className="hidden sm:inline">
                                                             {model === 'auto' ? 'Auto' :
                                                                 model === 'Trinity Mini' ? 'Trinity' :
-                                                                    model === 'GLM 4.5 Air' ? 'Z-Air' :
-                                                                        model === 'Meta Llama 3.3 70B Instruct' ? 'Meta Llama' :
+                                                                    model === 'Llama 3.1 8B' ? 'Lamma' :
+                                                                        model === 'GPT OSS 120B' ? 'GPT' :
                                                                             model}
                                                         </span>
                                                         <span className="sm:hidden">
@@ -695,11 +705,11 @@ export default function ChatPage() {
                                                         <DropdownMenuRadioItem value="Trinity Mini" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
                                                             Trinity Mini
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="GLM 4.5 Air" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            GLM 4.5 Air
+                                                        <DropdownMenuRadioItem value="Llama 3.1 8B" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            Llama 3.1 8B
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="Meta Llama 3.3 70B Instruct" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Meta Llama 3.3 70B Instruct
+                                                        <DropdownMenuRadioItem value="GPT OSS 120B" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                            GPT OSS 120B
                                                         </DropdownMenuRadioItem>
                                                     </DropdownMenuRadioGroup>
                                                 </DropdownMenuContent>

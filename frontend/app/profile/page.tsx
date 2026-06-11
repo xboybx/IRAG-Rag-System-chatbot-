@@ -26,7 +26,7 @@ export default function ProfilePage() {
 
     if (!mounted || isLoading) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+            <div className="h-screen w-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
                 <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
             </div>
         );
@@ -38,7 +38,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen relative flex flex-col overflow-hidden font-sans bg-slate-50 dark:bg-slate-950">
+        <div className="min-h-screen relative flex flex-col overflow-hidden font-sans bg-zinc-50 dark:bg-zinc-950">
             {/* Background Image */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                 <div

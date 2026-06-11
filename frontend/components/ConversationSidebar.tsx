@@ -65,7 +65,7 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
     };
 
     return (
-        <div className="h-full w-64 flex flex-col bg-white/30 dark:bg-slate-900/30 backdrop-blur-xl border-r border-white/20 dark:border-white/10 shadow-lg rounded-r-md">
+        <div className="h-full w-72 flex flex-col bg-white/30 dark:bg-zinc-900/30 backdrop-blur-xl border-r border-white/20 dark:border-white/10 shadow-lg rounded-r-md">
             {/* Header */}
             <div className="p-4 border-b border-white/20 dark:border-white/10 shrink-0">
                 <Button
@@ -85,35 +85,35 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
                             key={conversation.id}
                             onClick={() => handleSelectConversation(conversation.id)}
                             className={`
-                w-full text-left px-3 py-3 rounded-xl transition-all group cursor-pointer
-                ${currentConversationId === conversation.id
+                                w-full text-left px-3 py-3 rounded-xl transition-all group cursor-pointer relative
+                                ${currentConversationId === conversation.id
                                     ? 'bg-indigo-500/20 border border-indigo-500/30 text-foreground'
                                     : 'hover:bg-white/20 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'
                                 }
-              `}
+                            `}
                         >
-                            <div className="flex items-start gap-2">
+                            <div className="flex items-start gap-2 pr-6">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate dark:text-white">{conversation.title}</p>
                                     <p className="text-xs opacity-60 mt-0.5">{conversation.timestamp}</p>
                                 </div>
-                                <button
-                                    onClick={async (e) => {
-                                        e.stopPropagation();
-                                        if (confirm("Delete this conversation?")) {
-                                            await dispatch(deleteConversationThunk(conversation.id));
-                                            if (currentConversationId === conversation.id) {
-                                                router.push('/chat');
-                                                dispatch(clearMessages());
-                                                dispatch(setConversationId(null));
-                                            }
-                                        }
-                                    }}
-                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-opacity"
-                                >
-                                    <Trash2 className="w-3 h-3 text-red-500" />
-                                </button>
                             </div>
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm("Delete this conversation?")) {
+                                        await dispatch(deleteConversationThunk(conversation.id));
+                                        if (currentConversationId === conversation.id) {
+                                            router.push('/chat');
+                                            dispatch(clearMessages());
+                                            dispatch(setConversationId(null));
+                                        }
+                                    }
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-opacity z-10"
+                            >
+                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </button>
                         </div>
                     ))}
                 </div>
