@@ -15,16 +15,16 @@ if (process.env.SITE_NAME) {
 }
 
 const openai = new Openai({
-    baseURL: process.env.AI_BASE_URL,
-    apiKey: process.env.AI_API_KEY,
+    baseURL: process.env.GROQ_BASE_URL,
+    apiKey: process.env.GROQ_API_KEY,
     defaultHeaders: defaultHeaders,
 });
 
 
 const MODEL_MAPPING = {
-    "Trinity": "Trinity Mini",
-    "Lamma": "Llama 3.1 8B",
-    "GPT": "GPT OSS 120B"
+    "Trinity": "openai/gpt-oss-120b",
+    "Lamma": "qwen/qwen3-32b",
+    "GPT": "llama-3.3-70b-versatile"
     // Add more mappings as needed
 };
 
@@ -33,9 +33,9 @@ const MODEL_MAPPING = {
 /* Model names form app.clod */
 /* The control loops through the array and uses models if previous one fails */
 const AUTO_MODELS = [
-    "Trinity Mini",
-    "Llama 3.1 8B",
-    "GPT OSS 120B"
+    "openai/gpt-oss-120b",
+    "qwen/qwen3-32b",
+    "llama-3.3-70b-versatile"
 
 ];
 
@@ -88,7 +88,6 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
 
         // Wrap the streaming logic inside an AsyncGenerator to immediately return the stream object instance
         const streamGenerator = async function* () {
-            let modelErrors = {};
             for (let model of modelsToTry) {
                 try {
                     let currentMessages = [
@@ -178,14 +177,12 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
                     }
                 } catch (error) {
                     console.log(`\n--------------------\n`, "[AI Service] Model ", model, " failed:", error.message, "\n--------------------\n");
-                    modelErrors[model] = error.message;
                     continue; // try next model fallback
                 }
             }
 
             // Exiting without returning natively means all models failed
-            const errorSummary = Object.entries(modelErrors).map(([m, err]) => `${m}: ${err}`).join(" | ");
-            yield { choices: [{ delta: { content: `\n[Error: No response from any model. Details: ${errorSummary}]` } }] };
+            yield { choices: [{ delta: { content: "\n[Error: No response from any model]" } }] };
         };
 
         return streamGenerator();
