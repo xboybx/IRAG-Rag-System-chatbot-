@@ -22,9 +22,9 @@ const openai = new Openai({
 
 
 const MODEL_MAPPING = {
-    "Trinity": "openai/gpt-oss-120b",
-    "Lamma": "qwen/qwen3-32b",
-    "GPT": "llama-3.3-70b-versatile"
+    "Openai": "openai/gpt-oss-120b",
+    "Qwen": "qwen/qwen3-32b",
+    "Lamma": "llama-3.3-70b-versatile"
     // Add more mappings as needed
 };
 
@@ -193,5 +193,6 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
 };
 
 module.exports = {
-    generateResponse
+    generateResponse,
+    MODEL_MAPPING
 }

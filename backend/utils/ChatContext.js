@@ -5,15 +5,13 @@ const MessageModel = require("../models/MessageModel.js");
 const getChatContext = async (conversationId, userId) => {
     try {
 
-        const conversation = await ConversationModel.findById({
+        const conversation = await ConversationModel.findOne({
             _id: conversationId,
             user_id: userId
         });
 
         if (!conversation) {
-            return {
-                message: "Conversation not found"
-            }
+            return []; // Safe fallback
         }
 
         const messages = await MessageModel.find({
@@ -21,14 +19,11 @@ const getChatContext = async (conversationId, userId) => {
             user_id: userId
         }).sort({ createdAt: -1 }).limit(10);
 
-        if (!messages) {
-            return {
-                message: "No messages found"
-            }
+        if (!messages || messages.length === 0) {
+            return []; // Safe fallback
         }
 
         //Creating a context array
-
         const contextMessages = messages.reverse().map((msg) => {
             return {
                 role: msg.role,
@@ -36,14 +31,8 @@ const getChatContext = async (conversationId, userId) => {
             }
         });
 
-        if (!contextMessages) {
-            return {
-                message: "No context messages found"
-            }
-        }
-
-
         return contextMessages;
+
 
     } catch (err) {
         return {

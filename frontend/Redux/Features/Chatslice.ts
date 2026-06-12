@@ -7,6 +7,11 @@ export interface Message {
     content: string;
 }
 
+export interface AvailableModel {
+    id: string;
+    name: string;
+}
+
 interface ChatState {
     messages: Message[];
     isLoading: boolean;
@@ -17,6 +22,7 @@ interface ChatState {
     isUploading: boolean;
     uploadedFile: { name: string, id: string } | null;
     isFetchingMessages: boolean;
+    availableModels: AvailableModel[];
 }
 
 const initialState: ChatState = {
@@ -29,6 +35,7 @@ const initialState: ChatState = {
     isUploading: false,
     uploadedFile: null,
     isFetchingMessages: false,
+    availableModels: [],
 }
 
 // Async Thunk for sending messages
@@ -100,6 +107,19 @@ export const uploadFile = createAsyncThunk(
             return response.data;
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || "File upload failed");
+        }
+    }
+);
+
+// Async Thunk for fetching available models
+export const fetchAvailableModels = createAsyncThunk(
+    'chat/fetchAvailableModels',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/ai/models');
+            return response.data;
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data || "Failed to fetch models");
         }
     }
 );
@@ -218,6 +238,10 @@ const chatSlice = createSlice({
                 state.isUploading = false;
                 state.isError = true;
                 state.error = action.payload as string;
+            })
+            // Fetch Available Models
+            .addCase(fetchAvailableModels.fulfilled, (state, action) => {
+                state.availableModels = action.payload.models || [];
             });
     }
 })

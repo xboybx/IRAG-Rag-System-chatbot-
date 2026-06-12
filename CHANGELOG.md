@@ -36,9 +36,15 @@ This document tracks all recent visual updates, bug fixes, performance optimizat
   - Resolved `403 Forbidden` API errors from `api.clod.io` in [ai.service.js](file:///d:/Dev%20Workspace/RagSystem/backend/services/ai.service.js) and [embedding.service.js](file:///d:/Dev%20Workspace/RagSystem/backend/services/embedding.service.js).
   - Sanitized outgoing header payloads to dynamically strip out `undefined` values (e.g. `HTTP-Referer` and `X-Title` stringifying as `"undefined"`), which triggered strict WAF rule blocks.
   - Appended standard browser `User-Agent` headers to both client initialization calls to prevent bot-detection flags.
-- **Unified Model Mapping**:
-  - Synchronized model labels between the frontend client selectors and the backend router mapping array.
-  - Mapped `"Trinity Mini"` -> `"Trinity"` (maps to `"Trinity Mini"` internally), `"Llama 3.1 8B"` -> `"Lamma"`, and `"GPT OSS 120B"` -> `"GPT"`.
+- **Fix Chat 500 Internal Server Errors & Mongoose CastErrors**:
+  - Corrected `ConversationModel.findById` with a query object to `ConversationModel.findOne` in [ChatContext.js](file:///d:/Dev%20Workspace/RagSystem/backend/utils/ChatContext.js) to resolve Mongoose CastError crashes.
+  - Removed the broken `.sort({ createdAt: -1 }).lmit(5)` method chain on the async result of `getChatContext(...)` in [AIcontroller.js](file:///d:/Dev%20Workspace/RagSystem/backend/Controllers/AIcontroller.js).
+  - Ensured `getChatContext` returns safe `[]` arrays when missing records, preventing subsequent array operations from raising TypeError crashes in the Express handler.
+  - Corrected the `findByIdAndUpdate` parameter call in `DatasetUploadController` to pass the conversation ID directly as a string instead of an object.
+- **Dynamic Model Selector Endpoint & Frontend Binding**:
+  - Added a new `GET /ai/models` route in [ai.Routes.js](file:///d:/Dev%20Workspace/RagSystem/backend/Routes/ai.Routes.js) to dynamically fetch active models mapped on the backend.
+  - Implemented Redux thunk `fetchAvailableModels` and stored list state inside [Chatslice.ts](file:///d:/Dev%20Workspace/RagSystem/frontend/Redux/Features/Chatslice.ts).
+  - Updated the frontend [page.tsx](file:///d:/Dev%20Workspace/RagSystem/frontend/app/chat/%5B%5B...id%5D%5D/page.tsx) dropdown selector to fetch and render model choices dynamically and submit the chosen keys directly without hardcoded mappings.
 
 ---
 

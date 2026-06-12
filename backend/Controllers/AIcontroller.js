@@ -2,7 +2,7 @@ const ConversationModel = require("../models/ConverstionModel.js");
 const MessageModel = require("../models/MessageModel.js");
 const EmbeddingModel = require("../models/EmbeddingModel.js");
 const { getChatContext } = require("../utils/ChatContext.js");
-const { generateResponse } = require("../services/ai.service.js");
+const { generateResponse, MODEL_MAPPING } = require("../services/ai.service.js");
 const { performRagCheck } = require("../services/rag.service.js"); // Using RAG Service now
 const { uploadFile } = require("../services/imagekit.service.js");
 const { parseFile } = require("../utils/FileParser.js");
@@ -71,8 +71,8 @@ const chatController = async (req, res) => {
         else {
 
             // Fallback to database fetch
-            const dbContext = await getChatContext(conversationId, CurrentUser).sort({ createdAt: -1 }).lmit(5);
-            if (dbContext.error) {
+            const dbContext = await getChatContext(conversationId, CurrentUser);
+            if (dbContext && dbContext.error) {
                 return res.status(500).json({
                     message: "Error in getChatContext",
                     error: dbContext.error
@@ -268,9 +268,7 @@ const DatasetUploadController = async (req, res) => {
         }
 
         // Add file to Conversation
-        await ConversationModel.findByIdAndUpdate({
-            _id: req.body.conversationId
-        }, {
+        await ConversationModel.findByIdAndUpdate(req.body.conversationId, {
             $push: { files: newFile._id }
         })
 
@@ -403,12 +401,27 @@ const getMessagesController = async (req, res) => {
     }
 };
 
+const getModelsController = async (req, res) => {
+    try {
+        const models = Object.keys(MODEL_MAPPING).map(key => ({
+            id: key,
+            name: key
+        }));
+        return res.status(200).json({ models });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error fetching models",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     chatController,
     CreateConversationController,
     DatasetUploadController,
     getConversationsController,
     deleteConversationController,
-    getMessagesController
-
+    getMessagesController,
+    getModelsController
 };

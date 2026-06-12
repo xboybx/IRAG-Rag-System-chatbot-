@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
-import { addMessage, setLoading, setModel, setConversationId, fetchMessages, clearMessages, uploadFile, clearUploadedFile, updateLastMessageContent } from '@/Redux/Features/Chatslice';
+import { addMessage, setLoading, setModel, setConversationId, fetchMessages, clearMessages, uploadFile, clearUploadedFile, updateLastMessageContent, fetchAvailableModels } from '@/Redux/Features/Chatslice';
 import { fetchConversations, createConversation } from '@/Redux/Features/ConversationHistorySlice';
 import { toggleSidebar, setUploadModalOpen } from '@/Redux/Features/UIslice';
 import { logoutUser } from '@/Redux/Features/UserSlice';
@@ -43,7 +43,7 @@ export default function ChatPage() {
 
     // Redux Hooks
     const dispatch = useAppDispatch();
-    const { messages, isLoading, model, currentConversationId, isUploading, uploadedFile, isFetchingMessages } = useAppSelector((state) => state.chat);
+    const { messages, isLoading, model, currentConversationId, isUploading, uploadedFile, isFetchingMessages, availableModels } = useAppSelector((state) => state.chat);
     const { isSidebarOpen, isUploadModalOpen } = useAppSelector((state) => state.ui);
     const { isAuthenticated, token } = useAppSelector((state) => state.auth);
 
@@ -83,7 +83,8 @@ export default function ChatPage() {
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        dispatch(fetchAvailableModels());
+    }, [dispatch]);
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
@@ -139,9 +140,6 @@ export default function ChatPage() {
 
         // 4. Prepare Payload
         let backendModelName = model;
-        if (model === "Trinity Mini") backendModelName = "Trinity";
-        else if (model === "Llama 3.1 8B") backendModelName = "Lamma";
-        else if (model === "GPT OSS 120B") backendModelName = "GPT";
 
         // Create new AbortController
         if (abortControllerRef.current) {
@@ -686,10 +684,7 @@ export default function ChatPage() {
                                                     >
                                                         <span className="hidden sm:inline">
                                                             {model === 'auto' ? 'Auto' :
-                                                                model === 'Trinity Mini' ? 'Trinity' :
-                                                                    model === 'Llama 3.1 8B' ? 'Lamma' :
-                                                                        model === 'GPT OSS 120B' ? 'GPT' :
-                                                                            model}
+                                                                availableModels.find(m => m.id === model)?.name || model}
                                                         </span>
                                                         <span className="sm:hidden">
                                                             {model === 'auto' ? 'Auto' : 'Model'}
@@ -702,15 +697,11 @@ export default function ChatPage() {
                                                         <DropdownMenuRadioItem value="auto" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
                                                             Auto (Smart Select)
                                                         </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="Trinity Mini" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Trinity Mini
-                                                        </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="Llama 3.1 8B" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            Llama 3.1 8B
-                                                        </DropdownMenuRadioItem>
-                                                        <DropdownMenuRadioItem value="GPT OSS 120B" className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
-                                                            GPT OSS 120B
-                                                        </DropdownMenuRadioItem>
+                                                        {availableModels.map((m) => (
+                                                            <DropdownMenuRadioItem key={m.id} value={m.id} className="rounded-lg cursor-pointer py-2 dark:text-white text-xs">
+                                                                {m.name}
+                                                            </DropdownMenuRadioItem>
+                                                        ))}
                                                     </DropdownMenuRadioGroup>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
