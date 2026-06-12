@@ -71,8 +71,8 @@ const chatController = async (req, res) => {
         else {
 
             // Fallback to database fetch
-            const dbContext = await getChatContext(conversationId, CurrentUser).sort({ createdAt: -1 }).lmit(5);
-            if (dbContext.error) {
+            const dbContext = await getChatContext(conversationId, CurrentUser);
+            if (dbContext && dbContext.error) {
                 return res.status(500).json({
                     message: "Error in getChatContext",
                     error: dbContext.error
@@ -268,11 +268,12 @@ const DatasetUploadController = async (req, res) => {
         }
 
         // Add file to Conversation
-        await ConversationModel.findByIdAndUpdate({
-            _id: req.body.conversationId
-        }, {
-            $push: { files: newFile._id }
-        })
+        await ConversationModel.findByIdAndUpdate(
+            req.body.conversationId,
+            {
+                $push: { files: newFile._id }
+            }
+        )
 
 
         //3.parse the extracted text

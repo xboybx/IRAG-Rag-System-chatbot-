@@ -88,6 +88,7 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
 
         // Wrap the streaming logic inside an AsyncGenerator to immediately return the stream object instance
         const streamGenerator = async function* () {
+            let modelErrors = {};
             for (let model of modelsToTry) {
                 try {
                     let currentMessages = [
@@ -177,12 +178,14 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
                     }
                 } catch (error) {
                     console.log(`\n--------------------\n`, "[AI Service] Model ", model, " failed:", error.message, "\n--------------------\n");
+                    modelErrors[model] = error.message;
                     continue; // try next model fallback
                 }
             }
 
             // Exiting without returning natively means all models failed
-            yield { choices: [{ delta: { content: "\n[Error: No response from any model]" } }] };
+            const errorSummary = Object.entries(modelErrors).map(([m, err]) => `${m}: ${err}`).join(" | ");
+            yield { choices: [{ delta: { content: `\n[Error: No response from any model. Details: ${errorSummary}]` } }] };
         };
 
         return streamGenerator();
