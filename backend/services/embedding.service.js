@@ -16,6 +16,7 @@ const openai = new Openai({
     defaultHeaders: defaultHeaders,
 });
 
+const EMBED_MODEL = process.env.EMBED_MODEL || "text-embedding-3-small";
 /**
  * Generates an embedding for the given input text.
  * Uses a free/cheap model available on OpenRouter or directly from a provider if configured.
@@ -46,7 +47,7 @@ const generateEmbedding = async (text) => {
         // Often, 'text-embedding-3-small' is the standard go-to even if paid (it's nearly free).
 
         const response = await openai.embeddings.create({
-            model: "text-embedding-3-small", // Standard reliable model (cheap)
+            model: EMBED_MODEL, // Standard reliable model (cheap)
             input: cleanText,
         });
 
@@ -59,26 +60,34 @@ const generateEmbedding = async (text) => {
 }
 
 
+
 const generateEmbeddingForChunks = async (chunks, fileId, conversationId) => {
     try {
-        const embeddingDocs = []
-        for (let i = 0; i < chunks.length; i++) {
-            const chunk = chunks[i]
-            const embedding = await generateEmbedding(chunk.pageContent);
+        if (!chunks || chunks.length === 0) return [];
 
-            embeddingDocs.push({
-                fileId: fileId,
-                text: chunk.pageContent, // Schema expects 'text' at top level
-                embedding: embedding,
-                metadata: {
-                    chunkIndex: i,
-                    conversationId: conversationId
-                }
-            })
-        }
+        // Clean texts for all chunks
+        const cleanTexts = chunks.map(chunk => chunk.pageContent.replace(/\n/g, " "));
+
+        // Single batch API call (supports up to 2048 items at once)
+        const response = await openai.embeddings.create({
+            model: EMBED_MODEL,
+            input: cleanTexts,
+        });
+
+        // Map embeddings back to schema documents preserving order
+        const embeddingDocs = response.data.map((item, index) => ({
+            fileId: fileId,
+            text: chunks[index].pageContent,
+            embedding: item.embedding,
+            metadata: {
+                chunkIndex: index,
+                conversationId: conversationId
+            }
+        }));
+
         return embeddingDocs;
     } catch (error) {
-        console.error("Error generating embeddings for chunks:", error.message);
+        console.error("Error generating batch embeddings for chunks:", error.message);
         throw error;
     }
 }

@@ -567,13 +567,17 @@ export default function ChatPage() {
                             </div>
                         </ScrollArea>
 
-                        {/* Input Area */}
-                        <div className="absolute bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-0 right-0 px-2 md:px-6 flex justify-center z-20 pointer-events-none">
+                        {/* Input Area with Frosted Blur Underlay & Elevated Glass Card */}
+                        <div className="absolute bottom-0 left-0 right-0 flex flex-col justify-end items-center z-20 pointer-events-none pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] md:pb-6 px-2 md:px-6">
+                            
+                            {/* Backdrop Frosted Gradient Mask to blur messages scrolling underneath */}
+                            <div className="absolute inset-x-0 bottom-0 h-44 md:h-52 bg-gradient-to-t from-white/90 via-white/60 to-transparent dark:from-neutral-950/95 dark:via-neutral-950/70 dark:to-transparent backdrop-blur-xl pointer-events-none -z-10 [mask-image:linear-gradient(to_top,black_50%,transparent_100%)]"></div>
+
                             <div className="w-full max-w-[1600px] relative group pointer-events-auto">
 
                                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 dark:from-zinc-400/20 dark:via-zinc-500/20 dark:to-zinc-300/20 rounded-[30px] md:rounded-[35px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
-                                <div className="relative z-10 flex flex-col bg-white/40 dark:bg-neutral-900/40 backdrop-blur-[60px] saturate-150 border border-white/40 dark:border-white/10 rounded-[30px] md:rounded-[35px] shadow-2xl transition-all duration-300 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)]">
+                                <div className="relative z-10 flex flex-col bg-white/80 dark:bg-neutral-900/85 backdrop-blur-2xl saturate-150 border border-white/60 dark:border-white/15 rounded-[30px] md:rounded-[35px] shadow-[0_10px_35px_-5px_rgba(0,0,0,0.15),0_0_1px_1px_rgba(255,255,255,0.4)] dark:shadow-[0_15px_35px_-5px_rgba(0,0,0,0.5),0_0_1px_1px_rgba(255,255,255,0.08)] transition-all duration-300 hover:bg-white/90 dark:hover:bg-neutral-900/95 hover:shadow-[0_20px_45px_-10px_rgba(0,0,0,0.25)]">
 
                                     {/* Uploaded File Indicator (Inside Input Area for visibility) */}
                                     {uploadedFile && (
