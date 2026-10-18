@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Lock } from 'lucide-react';
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/Redux/hooks';
 import { loginUser } from '@/Redux/Features/UserSlice';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const dispatch = useAppDispatch();
     const router = useRouter();
@@ -45,7 +46,7 @@ export default function LoginPage() {
                 </Link>
 
                 <div className="flex items-center gap-3">
-                    <span className="text-black/80 text-sm">Don't have an account?</span>
+                    <span className="text-black/80 text-sm">Don&apos;t have an account?</span>
                     <Link href="/register">
                         <Button className="bg-white/20 hover:bg-white/30 text-black border border-white/30 backdrop-blur-md">
                             Sign up
@@ -95,13 +96,25 @@ export default function LoginPage() {
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                                     <Input
                                         id="password"
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="pl-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-white/40 rounded-xl"
+                                        className="pl-11 pr-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-white/40 rounded-xl"
                                         required
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/90 focus:outline-none transition-colors"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
                                 </div>
                             </div>
 
@@ -138,34 +151,6 @@ export default function LoginPage() {
                                 )}
                             </Button>
                         </form>
-
-                        {/* Divider */}
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-white/20"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white/5 text-white/60 rounded-full">or continue with</span>
-                            </div>
-                        </div>
-
-                        {/* Social Login */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="h-11 bg-white/5 hover:bg-white/10 border-white/20 text-white"
-                            >
-                                Google
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="h-11 bg-white/5 hover:bg-white/10 border-white/20 text-white"
-                            >
-                                GitHub
-                            </Button>
-                        </div>
                     </div>
                 </div>
             </div>
