@@ -23,8 +23,8 @@ const openai = new Openai({
 
 const MODEL_MAPPING = {
     "Openai": "openai/gpt-oss-120b",
-    "Qwen": "qwen/qwen3-32b",
-    "Lamma": "llama-3.3-70b-versatile"
+    "Lamma 3.1 8B": "llama-3.1-8b-instant",
+    "Lamma 3.3 70B": "llama-3.3-70b-versatile"
     // Add more mappings as needed
 };
 

@@ -40,11 +40,34 @@
     @apply border-border outline-ring/50;
   }
 
+  html,
+  body {
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  input,
+  textarea {
+    touch-action: manipulation;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Gabarito', var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
 }
+
+/* PWA Mobile Safe Area Utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0.75rem);
+}
+
 
 /* Glassmorphism Utilities */
 @utility glass {

@@ -314,7 +314,7 @@ export default function ChatPage() {
                 )}
 
                 {/* Main Chat Container */}
-                <div className="flex-1 flex flex-col h-full w-full min-w-0 transition-all duration-300 ease-in-out py-2 md:pl-0">
+                <div className="flex-1 flex flex-col h-full w-full min-w-0 transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0.5rem)] pb-2 md:py-2 md:pl-0">
 
                     {/* Header */}
                     <header className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 shrink-0 gap-2">
@@ -568,7 +568,7 @@ export default function ChatPage() {
                         </ScrollArea>
 
                         {/* Input Area */}
-                        <div className="absolute bottom-4 md:bottom-6 left-0 right-0 px-2 md:px-6 flex justify-center z-20 pointer-events-none">
+                        <div className="absolute bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-0 right-0 px-2 md:px-6 flex justify-center z-20 pointer-events-none">
                             <div className="w-full max-w-[1600px] relative group pointer-events-auto">
 
                                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 dark:from-zinc-400/20 dark:via-zinc-500/20 dark:to-zinc-300/20 rounded-[30px] md:rounded-[35px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
