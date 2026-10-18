@@ -83,29 +83,24 @@ const chatController = async (req, res) => {
 
 
         /* Query Routing */
-        const QueryRouteRes = await routeQuery(message);//THis is only latest user query
-
-        console.log("The result of the queryRouteres:---------- ", QueryRouteRes);
+        const QueryRouteRes = await routeQuery(message); // This is only latest user query
 
         if (QueryRouteRes === "RAG") {
-
+            console.log("[Pipeline] 📂 Route [RAG] active: Searching for relevant uploaded document context...");
             const ragContext = await performRagCheck(conversationId, message);
-            console.log("The Rag content: ", ragContext)
 
             if (ragContext) {
-                // Inject context as a system message
+                console.log("[Pipeline] ✅ RAG Context found and injected into system prompt.");
                 contextMessages.push({
                     role: "system",
                     content: ragContext
                 });
-                // console.log("\n--------------------\n[Controller] Injected RAG Context rag is used here that is ligiht similatity search to find wherater to use Rag or not based on user Input.\n--------------------\n");
-
+            } else {
+                console.log("[Pipeline] ℹ️ RAG search completed: No relevant document context found in DB for this query.");
             }
+        } else {
+            console.log("[Pipeline] 💬 Route [GENERAL] active: Answering directly without document retrieval.");
         }
-
-
-
-
 
         // Only NOW append the User's latest message (so context is *before* the question)
         contextMessages.push({
@@ -121,14 +116,10 @@ const chatController = async (req, res) => {
             content: message
         });
 
-
-        // Log the context messages for debugging
-        // console.log("\n--------------------\n[Controller] Context Messages sent to AI:\n--------------------\n", JSON.stringify(contextMessages, null, 2), "\n--------------------\n");
-
-
         // --- STREAMING OR NORMAL RESPONSE ---
 
         const toolConfig = { perform_web_search: useWebSearch !== false }; /* default true until user makes it false */
+        console.log(`[Pipeline] 🌐 Web Search Tool: ${toolConfig.perform_web_search ? "ENABLED" : "DISABLED"} | Target Model: "${selectedModel}"`);
         const aistream = await generateResponse(contextMessages, selectedModel, toolConfig);
 
         if (aistream.error) {

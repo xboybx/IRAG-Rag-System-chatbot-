@@ -289,13 +289,13 @@ export default function ChatPage() {
             {/* Main Layout with Sidebar */}
             <div className="relative z-10 w-full h-full overflow-hidden flex">
 
-                {/* Sidebar - Desktop: Relative/Translated, Mobile: Absolute/Overlay */}
+                {/* Sidebar - Desktop: Relative/Translated, Mobile: Floating Compact Overlay */}
                 <div
                     className={`
-                        fixed inset-y-0 left-0 z-30 w-72 md:w-72
+                        fixed top-2 bottom-2 left-2 z-30 w-64 max-w-[78vw] h-[calc(100dvh-1rem)] max-h-[85vh] my-auto
                         transform transition-all duration-300 ease-in-out
-                        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                        md:relative md:translate-x-0 md:shrink-0
+                        ${isSidebarOpen ? 'translate-x-0 opacity-100 scale-100' : '-translate-x-full opacity-0 scale-95 pointer-events-none'}
+                        md:relative md:top-0 md:bottom-0 md:left-0 md:z-auto md:w-72 md:max-w-none md:h-full md:max-h-full md:my-0 md:opacity-100 md:scale-100 md:pointer-events-auto md:translate-x-0 md:shrink-0
                         ${!isSidebarOpen && "md:-ml-72!"} 
                     `}
                 >

@@ -1,9 +1,15 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { clearMessages, setConversationId } from '@/Redux/Features/Chatslice';
 import { fetchConversations, deleteConversationThunk, addConversation } from '@/Redux/Features/ConversationHistorySlice';
 import { useEffect } from 'react';
@@ -64,10 +70,22 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
         router.push(`/chat/${id}`);
     };
 
+    const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (confirm("Delete this conversation?")) {
+            await dispatch(deleteConversationThunk(id));
+            if (currentConversationId === id) {
+                router.push('/chat');
+                dispatch(clearMessages());
+                dispatch(setConversationId(null));
+            }
+        }
+    };
+
     return (
-        <div className="h-full w-72 flex flex-col bg-white/30 dark:bg-zinc-900/30 backdrop-blur-xl border-r border-white/20 dark:border-white/10 shadow-lg rounded-r-md">
+        <div className="h-full w-full flex flex-col bg-white/40 dark:bg-zinc-900/60 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-2xl md:shadow-lg rounded-2xl md:rounded-none md:rounded-r-md overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-white/20 dark:border-white/10 shrink-0">
+            <div className="p-3 md:p-4 border-b border-white/20 dark:border-white/10 shrink-0">
                 <Button
                     onClick={handleNewConversation}
                     className="w-full bg-white/60 dark:bg-white/20 hover:bg-white/80 dark:hover:bg-white/30 backdrop-blur-xl border border-white/40 dark:border-white/30 text-indigo-600 dark:text-white rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
@@ -85,35 +103,44 @@ export default function ConversationSidebar({ isOpen, currentConversationId }: C
                             key={conversation.id}
                             onClick={() => handleSelectConversation(conversation.id)}
                             className={`
-                                w-full text-left px-3 py-3 rounded-xl transition-all group cursor-pointer relative
+                                w-full text-left px-3 py-2.5 rounded-xl transition-all group cursor-pointer relative flex items-center justify-between
                                 ${currentConversationId === conversation.id
                                     ? 'bg-indigo-500/20 border border-indigo-500/30 text-foreground'
                                     : 'hover:bg-white/20 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'
                                 }
                             `}
                         >
-                            <div className="flex items-start gap-2 pr-6">
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate dark:text-white">{conversation.title}</p>
-                                    <p className="text-xs opacity-60 mt-0.5">{conversation.timestamp}</p>
-                                </div>
+                            <div className="flex-1 min-w-0 pr-2">
+                                <p className="text-sm font-medium truncate dark:text-white">{conversation.title}</p>
+                                <p className="text-xs opacity-60 mt-0.5">{conversation.timestamp}</p>
                             </div>
-                            <button
-                                onClick={async (e) => {
-                                    e.stopPropagation();
-                                    if (confirm("Delete this conversation?")) {
-                                        await dispatch(deleteConversationThunk(conversation.id));
-                                        if (currentConversationId === conversation.id) {
-                                            router.push('/chat');
-                                            dispatch(clearMessages());
-                                            dispatch(setConversationId(null));
-                                        }
-                                    }
-                                }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-opacity z-10"
-                            >
-                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                            </button>
+
+                            {/* Three Dots Menu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="opacity-70 md:opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-white transition-opacity"
+                                        aria-label="Conversation options"
+                                    >
+                                        <MoreVertical className="w-4 h-4" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    side="right"
+                                    align="start"
+                                    className="w-36 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border-white/20 shadow-xl rounded-xl p-1 z-50"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <DropdownMenuItem
+                                        onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                                        className="text-red-600 dark:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg cursor-pointer flex items-center gap-2 px-2.5 py-2 text-xs font-medium"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>Delete Chat</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     ))}
                 </div>

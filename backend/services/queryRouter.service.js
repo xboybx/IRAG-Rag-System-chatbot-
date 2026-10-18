@@ -54,8 +54,9 @@ const routeQuery = async (query) => {
 
 
 
+        const modelToUse = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
         const response = await openai.chat.completions.create({
-            model: process.env.GROQ_MODEL,
+            model: modelToUse,
             messages: [
                 {
                     role: "system",
@@ -63,14 +64,22 @@ const routeQuery = async (query) => {
                 },
                 { role: "user", content: query }
             ],
-            max_tokens: 5
+            max_tokens: 30
         });
 
-        const action = response.choices[0].message.content.trim().toUpperCase();
-        console.log(`[Query Router] Decided path: ${action}`);
-        return action === "RAG" ? "RAG" : "GENERAL";
+        let rawOutput = response.choices[0]?.message?.content?.trim() || "";
+        if (!rawOutput && response.choices[0]?.message?.reasoning) {
+            rawOutput = response.choices[0].message.reasoning;
+        }
+
+        const action = rawOutput.toUpperCase().includes("RAG") ? "RAG" : "GENERAL";
+        console.log(`\n=================== [QUERY ROUTER] ===================`);
+        console.log(`[Query Router] User Query: "${query}"`);
+        console.log(`[Query Router] Route Decided: 👉 [ ${action} ]`);
+        console.log(`======================================================\n`);
+        return action;
     } catch (e) {
-        console.error("[Query Router] Failed, defaulting to search.", e.message);
+        console.error("\n[Query Router] Error occurred, defaulting to RAG:", e.message, "\n");
         return "RAG";
     }
 };

@@ -49,7 +49,7 @@ export default function Home() {
           </p>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
             <Link href="/chat">
               <Button className="bg-white/20 hover:bg-white/30 text-black border border-white/30 backdrop-blur-md">
@@ -74,26 +74,62 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-32">
-        <div className="max-w-4xl mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-20 md:pb-32">
+        <div className="max-w-4xl mx-auto w-full">
           {/* Glassmorphism Card */}
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[32px] p-12 md:p-16 shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[32px] p-8 sm:p-12 md:p-16 shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="text-center">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8 tracking-tight leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 md:mb-8 tracking-tight leading-tight">
                 AI-Powered Research & Knowledge
                 <br />
                 <span className="text-white/90">that works everywhere</span>
               </h1>
 
-              <Link href="/chat">
-                <Button
-                  size="lg"
-                  className="h-14 px-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-base shadow-2xl hover:scale-105 transition-all group"
-                >
-                  Get Started
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              {/* Main Actions in Middle */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6">
+                {isAuthenticated ? (
+                  <Link href="/chat" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto h-12 sm:h-14 px-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-base shadow-2xl hover:scale-105 transition-all group"
+                    >
+                      Go to Chat
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/chat" className="w-full sm:w-auto">
+                      <Button
+                        size="lg"
+                        className="w-full sm:w-auto h-12 sm:h-14 px-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-base shadow-2xl hover:scale-105 transition-all group"
+                      >
+                        Get Started
+                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+
+                    {/* Mobile visible login & register in middle */}
+                    <div className="flex md:hidden items-center justify-center gap-3 w-full sm:w-auto pt-2 sm:pt-0">
+                      <Link href="/login" className="flex-1 sm:flex-none">
+                        <Button
+                          variant="ghost"
+                          className="w-full sm:w-auto h-11 px-5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md text-sm"
+                        >
+                          Log in
+                        </Button>
+                      </Link>
+                      <Link href="/register" className="flex-1 sm:flex-none">
+                        <Button
+                          className="w-full sm:w-auto h-11 px-5 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-md text-sm"
+                        >
+                          Sign up
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

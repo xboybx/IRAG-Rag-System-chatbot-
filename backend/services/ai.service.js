@@ -22,9 +22,9 @@ const openai = new Openai({
 
 
 const MODEL_MAPPING = {
-    "Openai": "openai/gpt-oss-120b",
-    "Lamma 3.1 8B": "llama-3.1-8b-instant",
-    "Lamma 3.3 70B": "llama-3.3-70b-versatile"
+    "Openai 120b": "openai/gpt-oss-120b",
+    "Openai 20b": "openai/gpt-oss-20b",
+    "qwen 27B": "qwen/qwen3.8-27b"
     // Add more mappings as needed
 };
 
@@ -34,8 +34,8 @@ const MODEL_MAPPING = {
 /* The control loops through the array and uses models if previous one fails */
 const AUTO_MODELS = [
     "openai/gpt-oss-120b",
-    "qwen/qwen3-32b",
-    "llama-3.3-70b-versatile"
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b"
 
 ];
 
@@ -47,7 +47,7 @@ const summarizeHistory = async (messages) => {
     try {
         const historyText = messages.map(m => `${m.role}: ${m.content}`).join("\n");
         const summaryResponse = await openai.chat.completions.create({
-            model: "Trinity Mini", // Use a fast, free model for summarization
+            model: "openai/gpt-oss-20b", // Use a fast, free model for summarization
             messages: [
                 { role: "system", content: "Summarize the following conversation history concisely in 5-6 sentences. Maintain key facts." },
                 { role: "user", content: historyText }
@@ -145,7 +145,7 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
 
                         if (hasToolCallsInStream) {
                             const toolCallsArray = Object.values(toolCallsCollector);
-                            console.log("AI requesting for tool", toolCallsArray.map(t => t.function.name));
+                            console.log(`\n🤖 [AI Tool Request] Model requested ${toolCallsArray.length} tool(s):`, toolCallsArray.map(t => t.function.name));
 
                             currentMessages.push({
                                 role: "assistant",
@@ -160,7 +160,15 @@ const generateResponse = async (messages, selectedModel, toolConfig) => {
                                 } catch (e) {
                                     console.error("JSON parse error for tool arguments:", e);
                                 }
+
+                                if (toolcall.function.name === "perform_web_search") {
+                                    console.log(`🌐 [WEB SEARCH ROUTE] Executing query: "${args.query}"`);
+                                } else {
+                                    console.log(`⚙️ [TOOL ROUTE] Executing tool: "${toolcall.function.name}" with args:`, args);
+                                }
+
                                 const toolresult = await executeTool(toolcall.function.name, args);
+                                console.log(`✅ [TOOL COMPLETED] Finished: "${toolcall.function.name}"\n`);
 
                                 currentMessages.push({
                                     tool_call_id: toolcall.id,
