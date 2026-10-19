@@ -500,11 +500,11 @@ export default function ChatPage() {
                     </header>
 
                     {/* Chat Area */}
-                    <main className="flex-1 flex flex-col relative overflow-hidden rounded-lg md:rounded-[30px] mx-2 mb-2 border border-white/20 dark:border-0 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20 dark:ring-0">
+                    <main className="flex-1 flex flex-col relative overflow-hidden rounded-xl md:rounded-[30px] mx-1 sm:mx-2 mb-1 sm:mb-2 border border-white/20 dark:border-0 shadow-2xl bg-white/30 dark:bg-black/20 backdrop-blur-xl ring-1 ring-white/20 dark:ring-0 min-w-0">
 
                         {/* Messages */}
-                        <ScrollArea className="flex-1 px-2 md:px-0 scroll-smooth scrollbar-hide" showScrollBar={false}>
-                            <div className="w-full max-w-[1600px] mx-auto space-y-6 md:space-y-8 py-4 md:py-8 pb-32 md:pb-64">
+                        <ScrollArea className="flex-1 w-full min-w-0 px-1 sm:px-2 md:px-0 scroll-smooth scrollbar-hide" showScrollBar={false}>
+                            <div className="w-full max-w-[1600px] min-w-0 mx-auto space-y-4 sm:space-y-6 md:space-y-8 py-3 md:py-8 pb-36 md:pb-64">
                                 {isFetchingMessages ? (
                                     <div className="h-[50vh] flex flex-col items-center justify-center animate-in fade-in duration-500">
                                         <div className="flex items-center gap-3">
@@ -530,10 +530,10 @@ export default function ChatPage() {
                                         )}
 
                                         {messages.map((msg, i) => (
-                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start w-full'} animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mb-2 md:mb-0 max-w-full`}>
-                                                <div className={`text-sm md:text-base lg:text-lg leading-relaxed tracking-wide min-w-0 break-words overflow-x-auto max-w-full ${msg.role === 'user'
-                                                    ? 'max-w-[92%] sm:max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[18px] md:rounded-[24px] rounded-br-sm px-6 py-2 shadow-md md:shadow-lg w-fit'
-                                                    : 'w-full bg-transparent text-foreground/90 dark:text-white/90 px-0 sm:px-1 md:px-2 py-1 md:py-2 mx-0 sm:mx-1 md:mx-0'
+                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full max-w-full min-w-0 animate-in slide-in-from-bottom-4 duration-500 px-1 md:px-4 mb-2 md:mb-0`}>
+                                                <div className={`text-sm md:text-base lg:text-lg leading-relaxed tracking-wide min-w-0 max-w-full break-words ${msg.role === 'user'
+                                                    ? 'max-w-[92%] sm:max-w-[85%] md:max-w-[70%] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/30 dark:border-white/20 text-foreground dark:text-white rounded-[18px] md:rounded-[24px] rounded-br-sm px-4 sm:px-6 py-2 shadow-md md:shadow-lg w-fit overflow-hidden'
+                                                    : 'w-full min-w-0 bg-transparent text-foreground/90 dark:text-white/90 px-0 sm:px-1 md:px-2 py-1 md:py-2 mx-0 sm:mx-1 md:mx-0 overflow-hidden'
                                                     }`}>
                                                     <MessageContent content={msg.content} />
                                                 </div>
